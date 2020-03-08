@@ -1,1 +1,7 @@
 
+
+#Ignorar la colección de imágenes
+images/*
+
+#Ingorar los checkpoints de notebooks
+notebooks/.ipynb_checkpoints/*
