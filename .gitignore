@@ -5,3 +5,5 @@ images/*
 
 #Ingorar los checkpoints de notebooks
 notebooks/.ipynb_checkpoints/*
+
+minIA/__pycache__
