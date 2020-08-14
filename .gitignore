@@ -1,9 +1,9 @@
 
 
 #Ignorar la colección de imágenes
-images/*
+images/
 
 #Ingorar los checkpoints de notebooks
 notebooks/.ipynb_checkpoints/*
 
-minIA/__pycache__
+minIA/__pycache__/
