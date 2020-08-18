@@ -7,3 +7,4 @@ images/
 notebooks/.ipynb_checkpoints/*
 
 minIA/__pycache__/
+src/__pycache__/
