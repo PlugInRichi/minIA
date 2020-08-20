@@ -11,19 +11,19 @@ Control de formato a la entrada (tamaño y normalización)
 import sys
 import os.path as path
 
-modulos_path = path.abspath('../minIA)
+modulos_path = path.abspath('../minIA')
 if modulos_path not in sys.path:
     sys.path.append(modulos_path)
 
-import utiles.lectura_img
+from utiles import lectura_img
 import argparse
 import numpy as np
 import cv2 as cv
 
 parser = argparse.ArgumentParser()
-parser.parse_args()
-parser.add_argument("extr", choices=['SIFT', 'SURF', 'DELF'])
-#se pasa el nombre del directorio dentro de la carpeta images EJ: GZoom/Grupo1
+parser.add_argument("extr", help='Extractor', choices=['SIFT', 'SURF', 'DELF'])
+parser.add_argument("dir", help='Nombre del directorio de imagenes')
+parser.add_argument("-threshold", help='Parametro de SURF', type=int)
 args = parser.parse_args()
 
 '''
@@ -33,34 +33,39 @@ método de extración.
 '''
 class Extractor(object):
     def calculoDescriptores(self, imagen):
-        raise NotImplementedError('todas las subclases deben sobrescribir')'
-
+        raise NotImplementedError('todas las subclases deben sobrescribir')
 
 
 class Sift(Extractor):
-    def __init__(self, gray):
-        self.sift = cv.SIFT_create()
+    def __init__(self):
+        #self.sift = cv.SIFT_create()
+        self.sift = cv.xfeatures2d_SIFT.create()
     def calculoDescriptores(self, imagen):
-        self.kp, self.des = self.sift.detectAndCompute(imagen,None)
+        return  self.sift.detectAndCompute(imagen,None)
+
+class Surf(Extractor):
+    def __init__(self, threshold):
+        self.surf = cv.xfeatures2d.SURF_create(threshold)
+    def calculoDescriptores(self, imagen):
+        return  self.surf.detectAndCompute(imagen,None)
+
 
 
 #Definición del tipo de extractor
 if args.extr == 'SIFT':
     extractor = Sift()
-elif args.extr == 'SURF':
-    #extractor = Surf()
-    pass
-else
+elif args.extr == 'SURF' and args.threshold is not None:
+    extractor = Surf(args.threshold)
+else:
     #extractor = Delf()
     pass
 
 
 #main
-path_images = lectura_img('Grupo1')
+path_images = lectura_img(args.dir)
 descriptores = list()
 for imagen in path_images:
-    img = cv.imread(imagen)
-    gray= cv.cvtColor(img,cv.COLOR_BGR2GRAY)
-    #NOTA: si los otros detectores no requieren imagen en escala de grises, este paso es exclusivo de SIFT y debería ir en su método
-    descriptores.append(extractor.calculoDescriptores(gray))
+    img = cv.imread(imagen, cv.COLOR_BGR2GRAY)
+    descriptores.append(extractor.calculoDescriptores(img))
     #Escribir la lista en archivo de salida.
+print('¡Listo! ' + args.extr)
