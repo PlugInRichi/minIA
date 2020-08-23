@@ -19,10 +19,12 @@ from utiles import lectura_img
 import argparse
 import numpy as np
 import cv2 as cv
+import pickle
 
 parser = argparse.ArgumentParser()
 parser.add_argument("extr", help='Extractor', choices=['SIFT', 'SURF', 'DELF'])
-parser.add_argument("dir", help='Nombre del directorio de imagenes')
+parser.add_argument("dir", help='Ruta del directorio de imagenes')
+parser.add_argument("nArch", help='Nombre del archivo de salida')
 parser.add_argument("-threshold", help='Parametro de SURF', default=100, type=int)
 parser.add_argument("-nOctaves", help='Parametro de SURF', default=4, type=int)
 parser.add_argument("-nOctaveLayers", help='Parametro de SURF', default=3, type=int)
@@ -49,7 +51,8 @@ class Sift(Extractor):
 
 class Surf(Extractor):
     def __init__(self, threshold, nOctaves, nOctaveLayers, extended, upright):
-        self.surf = cv.xfeatures2d.SURF_create(threshold, nOctaves, nOctaveLayers, extended, upright)
+        self.surf = cv.xfeatures2d.SURF_create(threshold, nOctaves, nOctaveLayers,
+        extended, upright)
     def calculoDescriptores(self, imagen):
         return  self.surf.detectAndCompute(imagen,None)
 
@@ -68,10 +71,15 @@ else:
 
 #main
 path_images = lectura_img(args.dir)
+pickle_file = open(args.nArch+'_'+args.extr+'.pickle', 'wb') #abierto en modo binario para pickle
 descriptores = list()
+
 for imagen in path_images:
-    print(imagen)
     img = cv.imread(imagen, cv.COLOR_BGR2GRAY)
-    descriptores.append(extractor.calculoDescriptores(img))
-    #Escribir la lista en archivo de salida.
+    keypoints, descriptors = extractor.calculoDescriptores(img)
+    descriptores.append([cv.KeyPoint_convert(keypoints),descriptors])
+pickle.dump(args, pickle_file)
+pickle.dump(descriptores, pickle_file)
 print('¡Listo! ' + args.extr)
+
+#numParray
