@@ -23,7 +23,11 @@ import cv2 as cv
 parser = argparse.ArgumentParser()
 parser.add_argument("extr", help='Extractor', choices=['SIFT', 'SURF', 'DELF'])
 parser.add_argument("dir", help='Nombre del directorio de imagenes')
-parser.add_argument("-threshold", help='Parametro de SURF', type=int)
+parser.add_argument("-threshold", help='Parametro de SURF', default=100, type=int)
+parser.add_argument("-nOctaves", help='Parametro de SURF', default=4, type=int)
+parser.add_argument("-nOctaveLayers", help='Parametro de SURF', default=3, type=int)
+parser.add_argument("-extended", help='Parametro de SURF', default=False, type=bool)
+parser.add_argument("-upright", help='Parametro de SURF', default=True, type=bool)
 args = parser.parse_args()
 
 '''
@@ -44,8 +48,8 @@ class Sift(Extractor):
         return  self.sift.detectAndCompute(imagen,None)
 
 class Surf(Extractor):
-    def __init__(self, threshold):
-        self.surf = cv.xfeatures2d.SURF_create(threshold)
+    def __init__(self, threshold, nOctaves, nOctaveLayers, extended, upright):
+        self.surf = cv.xfeatures2d.SURF_create(threshold, nOctaves, nOctaveLayers, extended, upright)
     def calculoDescriptores(self, imagen):
         return  self.surf.detectAndCompute(imagen,None)
 
@@ -54,8 +58,9 @@ class Surf(Extractor):
 #Definición del tipo de extractor
 if args.extr == 'SIFT':
     extractor = Sift()
-elif args.extr == 'SURF' and args.threshold is not None:
-    extractor = Surf(args.threshold)
+elif args.extr == 'SURF':
+    extractor = Surf(args.threshold, args.nOctaves, args.nOctaveLayers,
+    args.extended, args.upright)
 else:
     #extractor = Delf()
     pass
@@ -65,6 +70,7 @@ else:
 path_images = lectura_img(args.dir)
 descriptores = list()
 for imagen in path_images:
+    print(imagen)
     img = cv.imread(imagen, cv.COLOR_BGR2GRAY)
     descriptores.append(extractor.calculoDescriptores(img))
     #Escribir la lista en archivo de salida.
