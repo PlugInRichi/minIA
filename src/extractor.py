@@ -32,7 +32,8 @@ parser.add_argument("-nOctaveLayers", help='Parametro de SURF y SIFT', default=3
 parser.add_argument("-extended", help='Parametro de SURF', default=False, type=bool)
 parser.add_argument("-upright", help='Parametro de SURF', default=True, type=bool)
 
-parser.add_argument("-nfeatures", help="Parametro de SIFT", default=0 type=int)
+#Se dejan los valores establecidos por el paper, aunque pueden ser calculadas en automático
+parser.add_argument("-nfeatures", help="Parametro de SIFT", default=0, type=int)
 parser.add_argument("-contrastThreshold", help="Parametro de SIFT", default=0.04, type=float)
 parser.add_argument("-edgeThreshold", help="Parametro de SIFT", default=10, type=float)
 parser.add_argument("-sigma", help="Parametro de SIFT", default=1.6, type=float)
@@ -50,9 +51,9 @@ class Extractor(object):
 
 
 class Sift(Extractor):
-    def __init__(self):
-        #self.sift = cv.SIFT_create()
-        self.sift = cv.xfeatures2d_SIFT.create()
+    def __init__(self, nfeatures, nOctaveLayers, contrastThreshold, edgeThreshold, sigma):
+        self.sift = cv.xfeatures2d_SIFT.create(nfeatures, nOctaveLayers,
+        contrastThreshold, edgeThreshold, sigma)
     def calculoDescriptores(self, imagen):
         return  self.sift.detectAndCompute(imagen,None)
 
@@ -67,7 +68,8 @@ class Surf(Extractor):
 
 #Definición del tipo de extractor
 if args.extr == 'SIFT':
-    extractor = Sift()
+    extractor = Sift(args.nfeatures, args.nOctaveLayers, args.contrastThreshold,
+    args.edgeThreshold, args.sigma)
 elif args.extr == 'SURF':
     extractor = Surf(args.threshold, args.nOctaves, args.nOctaveLayers,
     args.extended, args.upright)
