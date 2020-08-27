@@ -25,11 +25,19 @@ parser = argparse.ArgumentParser()
 parser.add_argument("extr", help='Extractor', choices=['SIFT', 'SURF', 'DELF'])
 parser.add_argument("dir", help='Ruta del directorio de imagenes')
 parser.add_argument("nArch", help='Nombre del archivo de salida')
+
 parser.add_argument("-threshold", help='Parametro de SURF', default=100, type=int)
 parser.add_argument("-nOctaves", help='Parametro de SURF', default=4, type=int)
-parser.add_argument("-nOctaveLayers", help='Parametro de SURF', default=3, type=int)
+parser.add_argument("-nOctaveLayers", help='Parametro de SURF y SIFT', default=3, type=int)
 parser.add_argument("-extended", help='Parametro de SURF', default=False, type=bool)
 parser.add_argument("-upright", help='Parametro de SURF', default=True, type=bool)
+
+#Se dejan los valores establecidos por el paper, aunque pueden ser calculadas en automático
+parser.add_argument("-nfeatures", help="Parametro de SIFT", default=0, type=int)
+parser.add_argument("-contrastThreshold", help="Parametro de SIFT", default=0.04, type=float)
+parser.add_argument("-edgeThreshold", help="Parametro de SIFT", default=10, type=float)
+parser.add_argument("-sigma", help="Parametro de SIFT", default=1.6, type=float)
+
 args = parser.parse_args()
 
 '''
@@ -43,9 +51,9 @@ class Extractor(object):
 
 
 class Sift(Extractor):
-    def __init__(self):
-        #self.sift = cv.SIFT_create()
-        self.sift = cv.xfeatures2d_SIFT.create()
+    def __init__(self, nfeatures, nOctaveLayers, contrastThreshold, edgeThreshold, sigma):
+        self.sift = cv.xfeatures2d_SIFT.create(nfeatures, nOctaveLayers,
+        contrastThreshold, edgeThreshold, sigma)
     def calculoDescriptores(self, imagen):
         return  self.sift.detectAndCompute(imagen,None)
 
@@ -60,7 +68,8 @@ class Surf(Extractor):
 
 #Definición del tipo de extractor
 if args.extr == 'SIFT':
-    extractor = Sift()
+    extractor = Sift(args.nfeatures, args.nOctaveLayers, args.contrastThreshold,
+    args.edgeThreshold, args.sigma)
 elif args.extr == 'SURF':
     extractor = Surf(args.threshold, args.nOctaves, args.nOctaveLayers,
     args.extended, args.upright)
@@ -71,7 +80,7 @@ else:
 
 #main
 path_images = lectura_img(args.dir)
-pickle_file = open(args.nArch+'_'+args.extr+'.pickle', 'wb') #abierto en modo binario para pickle
+pickle_file = open(args.nArch+'_'+args.extr+'.pickle', 'wb')
 descriptores = list()
 
 for imagen in path_images:
@@ -81,5 +90,3 @@ for imagen in path_images:
 pickle.dump(args, pickle_file)
 pickle.dump(descriptores, pickle_file)
 print('¡Listo! ' + args.extr)
-
-#numParray
