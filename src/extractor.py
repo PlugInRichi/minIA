@@ -48,7 +48,7 @@ método de extración.
 class Extractor(object):
     def calculoDescriptores(self, imagen):
         raise NotImplementedError('todas las subclases deben sobrescribir')
-        #      [ [x, y, size] , [descriptores] ]
+        #      [[ [x, y, size] , [descriptor] ] ....[]   ]
 
 
 class Sift(Extractor):
@@ -96,13 +96,14 @@ Exporta una lista (archivo pickle) que contiene los keypoints,
 descriptores y nombre del archivo para cada imagen encontrada en  el directorio
 '''
 path_images = lectura_img(args.dir)
-pickle_file = open(args.nArch+'_'+args.extr+'.pickle', 'wb')
+path_pickle = path.abspath('../descriptors/'+args.nArch+'_'+args.extr+'.pickle')
 descriptores = list()
-
+pickle_file = open(path_pickle, 'wb')
 for imagen in path_images:
     img = cv.imread(imagen, cv.COLOR_BGR2GRAY)
-    etiq = path.split(imagen)
-    desc = extractor.calculoDescriptores(img).append(etiq)
+    etiq = path.split(imagen)[1]
+    desc = extractor.calculoDescriptores(img)
+    desc.append(etiq)
     descriptores.append(desc)
 pickle.dump(args, pickle_file)
 pickle.dump(descriptores, pickle_file)
