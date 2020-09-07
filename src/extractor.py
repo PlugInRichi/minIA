@@ -48,21 +48,33 @@ método de extración.
 class Extractor(object):
     def calculoDescriptores(self, imagen):
         raise NotImplementedError('todas las subclases deben sobrescribir')
+        #      [[ [x, y, size] , [descriptor] ] ....[]   ]
 
 
 class Sift(Extractor):
     def __init__(self, nfeatures, nOctaveLayers, contrastThreshold, edgeThreshold, sigma):
         self.sift = cv.xfeatures2d_SIFT.create(nfeatures, nOctaveLayers,
         contrastThreshold, edgeThreshold, sigma)
+
     def calculoDescriptores(self, imagen):
-        return  self.sift.detectAndCompute(imagen,None)
+        kps, descs = self.sift.detectAndCompute(imagen,None)
+        keypoints = list()
+        for kp in kps:
+            keypoints.append([kp.pt[0], kp.pt[1], kp.size])
+        return  [keypoints, descs]
+
 
 class Surf(Extractor):
     def __init__(self, threshold, nOctaves, nOctaveLayers, extended, upright):
         self.surf = cv.xfeatures2d.SURF_create(threshold, nOctaves, nOctaveLayers,
         extended, upright)
+
     def calculoDescriptores(self, imagen):
-        return  self.surf.detectAndCompute(imagen,None)
+        kps, descs = self.surf.detectAndCompute(imagen,None)
+        keypoints = list()
+        for kp in kps:
+            keypoints.append([kp.pt[0], kp.pt[1], kp.size])
+        return  [keypoints, descs]
 
 
 
@@ -79,14 +91,20 @@ else:
 
 
 #main
+'''
+Exporta una lista (archivo pickle) que contiene los keypoints,
+descriptores y nombre del archivo para cada imagen encontrada en  el directorio
+'''
 path_images = lectura_img(args.dir)
-pickle_file = open(args.nArch+'_'+args.extr+'.pickle', 'wb')
+path_pickle = path.abspath('../descriptors/'+args.nArch+'_'+args.extr+'.pickle')
 descriptores = list()
-
+pickle_file = open(path_pickle, 'wb')
 for imagen in path_images:
     img = cv.imread(imagen, cv.COLOR_BGR2GRAY)
-    keypoints, descriptors = extractor.calculoDescriptores(img)
-    descriptores.append([cv.KeyPoint_convert(keypoints),descriptors])
+    etiq = path.split(imagen)[1]
+    desc = extractor.calculoDescriptores(img)
+    desc.append(etiq)
+    descriptores.append(desc)
 pickle.dump(args, pickle_file)
 pickle.dump(descriptores, pickle_file)
 print('¡Listo! ' + args.extr)
