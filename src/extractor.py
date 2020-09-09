@@ -24,7 +24,7 @@ import pickle
 parser = argparse.ArgumentParser()
 parser.add_argument("extr", help='Extractor', choices=['SIFT', 'SURF', 'DELF'])
 parser.add_argument("dir", help='Ruta del directorio de imagenes')
-parser.add_argument("nArch", help='Nombre del archivo de salida')
+parser.add_argument("dir_output", help='Ruta del archivo de salida')
 
 parser.add_argument("-threshold", help='Parametro de SURF', default=100, type=int)
 parser.add_argument("-nOctaves", help='Parametro de SURF', default=4, type=int)
@@ -96,7 +96,7 @@ Exporta una lista (archivo pickle) que contiene los keypoints,
 descriptores y nombre del archivo para cada imagen encontrada en  el directorio
 '''
 path_images = lectura_img(args.dir)
-path_pickle = path.abspath('../descriptors/'+args.nArch+'_'+args.extr+'.pickle')
+path_pickle = path.abspath(args.dir_output+'_'+args.extr+'.pickle')
 descriptores = list()
 pickle_file = open(path_pickle, 'wb')
 for imagen in path_images:
