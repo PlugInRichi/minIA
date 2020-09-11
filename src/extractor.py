@@ -48,7 +48,7 @@ método de extración.
 class Extractor(object):
     def calculoDescriptores(self, imagen):
         raise NotImplementedError('todas las subclases deben sobrescribir')
-        #      [[ [x, y, size] , [descriptor] ] ....[]   ]
+        #      [[ [x, y, size] , [descriptor], [nombreArch] ] ....[]   ]
 
 
 class Sift(Extractor):
@@ -61,7 +61,7 @@ class Sift(Extractor):
         keypoints = list()
         for kp in kps:
             keypoints.append([kp.pt[0], kp.pt[1], kp.size])
-        return  [keypoints, descs]
+        return  {'keypoints': keypoints, 'descriptors':descs}
 
 
 class Surf(Extractor):
@@ -74,7 +74,7 @@ class Surf(Extractor):
         keypoints = list()
         for kp in kps:
             keypoints.append([kp.pt[0], kp.pt[1], kp.size])
-        return  [keypoints, descs]
+        return  {'keypoints': keypoints, 'descriptors':descs}
 
 
 
@@ -101,10 +101,10 @@ descriptores = list()
 pickle_file = open(path_pickle, 'wb')
 for imagen in path_images:
     img = cv.imread(imagen, cv.COLOR_BGR2GRAY)
-    etiq = path.split(imagen)[1]
-    desc = extractor.calculoDescriptores(img)
-    desc.append(etiq)
-    descriptores.append(desc)
+    nom_img = path.split(imagen)[1]
+    descs_img = extractor.calculoDescriptores(img)
+    descs_img['name_img'] = nom_img
+    descriptores.append(descs_img)
 pickle.dump(args, pickle_file)
 pickle.dump(descriptores, pickle_file)
 print('¡Listo! ' + args.extr)
