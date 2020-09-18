@@ -3,7 +3,26 @@ _El proyecto tiene como finalidad encontrar características de imágenes astron
 
 ## Comenzando 🚀
 
-_Neque porro quisquam est qui dolorem ipsum quia dolor sit amet, consectetur_
+### En linux
+
+Crear ambiente
+
+```
+virtualenv -p python3.6 env
+```
+
+Activar el ambiente
+
+```
+source env/bin/activate
+```
+
+Instalar librerias especificas de opencv
+
+```
+pip install -r requirements.txt
+```
+
 
 ### Pre-requisitos 📋
 
