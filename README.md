@@ -23,18 +23,20 @@ Instalar librerias especificas de opencv
 pip install -r requirements.txt
 ```
 
-
-### Pre-requisitos 📋
-
-Neque porro quisquam est qui dolorem ipsum quia dolor sit amet, consectetur.
-
-```
-Da un ejemplo
-```
-
-### Implementación ⌨️
+## Implementación ⌨️
 
 Neque porro quisquam est qui dolorem ipsum quia dolor sit amet, consectetur.
+
+### Ejecución 🕹️
+
+El archivo script encargado de extraer los descriptores es _extractor.py_ para su ejecución es obligatorio la especificación de tres parámetros:
+1. Tipo de extractor
+2. Ruta Absoluta o Relativa de la carpeta de imágenes
+3. Ruta Absoluta o Relativa del archivo a crear
+
+La siguiente ejecución creará un archivo Pickle con el nombre _pruebaDescriptor_
+> extractor.py SIFT C:\imagenes C:\documents\pruebaDescriptor
+
 
 ## Herramientas 🛠️
 
