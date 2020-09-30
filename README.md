@@ -34,7 +34,7 @@ El archivo script encargado de extraer los descriptores es _extractor.py_ para s
 2. Ruta Absoluta o Relativa de la carpeta de imágenes
 3. Ruta Absoluta o Relativa del archivo a crear
 
-La siguiente ejecución creará un archivo Pickle con el nombre _pruebaDescriptor_
+La siguiente ejecución creará un archivo Pickle con el nombre _pruebaDescriptor_SIFT_
 > extractor.py SIFT C:\imagenes C:\documents\pruebaDescriptor
 
 
