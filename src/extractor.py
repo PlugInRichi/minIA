@@ -16,6 +16,7 @@ if modulos_path not in sys.path:
     sys.path.append(modulos_path)
 
 from utiles import lectura_img
+from tqdm import tqdm
 import argparse
 import numpy as np
 import cv2 as cv
@@ -99,7 +100,7 @@ path_images = lectura_img(args.dir)
 path_pickle = path.abspath(args.dir_output+'_'+args.extr+'.pickle')
 descriptores = list()
 pickle_file = open(path_pickle, 'wb')
-for imagen in path_images:
+for imagen in tqdm(path_images):
     img = cv.imread(imagen, cv.COLOR_BGR2GRAY)
     nom_img = path.split(imagen)[1]
     descs_img = extractor.calculoDescriptores(img)
