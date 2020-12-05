@@ -17,11 +17,13 @@ Activar el ambiente
 source env/bin/activate
 ```
 
-Instalar librerias especificas de opencv
+Instalar librerias 
 
 ```
 pip install -r requirements.txt
 ```
+
+Adicionalmente será necesario instalar **Sampled-MinHashing**, para ello puede seguir las intrucciones descritas aquí: [https://github.com/gibranfp/Sampled-MinHashing]
 
 ## Implementación ⌨️
 
