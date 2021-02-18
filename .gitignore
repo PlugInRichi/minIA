@@ -8,11 +8,11 @@ notebooks/.ipynb_checkpoints/*
 */.ipynb_checkpoints/
 
 #Ignorar parámetros de DEFL
-notebooks/parameters/*
+#notebooks/parameters/*
 
 #Ignorar los archivos por extención
 *.pickle
-*.pbtxt
+#*.pbtxt
 
 minIA/__pycache__/
 src/__pycache__/
