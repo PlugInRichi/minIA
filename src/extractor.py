@@ -27,8 +27,8 @@ parser.add_argument("extr", help='Extractor', choices=['SIFT', 'SURF', 'DELF'])
 parser.add_argument("dir", help='Ruta del directorio de imagenes')
 parser.add_argument("dir_output", help='Ruta del archivo de salida')
 
-parser.add_argument('median_filter', help='Filtro de mediana', choices=['T', 'F'], default='F')
-parser.add_argument('median_value', help='Valores Impares', default=15, type=int)
+parser.add_argument('-median_filter', help='Filtro de mediana', default=False, type=bool)
+parser.add_argument('-median_value', help='Valores Impares', default=15, type=int)
 
 parser.add_argument("-threshold", help='Parametro de SURF', default=100, type=int)
 parser.add_argument("-nOctaves", help='Parametro de SURF', default=4, type=int)
@@ -105,9 +105,9 @@ descriptores = list()
 pickle_file = open(path_pickle, 'wb')
 for imagen in tqdm(path_images):
     
-    if args.median_filter == 'T':
-        imagen = cv.cvtColor(imagen, cv.COLOR_HSV2BGR)
-        image_gray = cv.cvtColor(imagen, cv.COLOR_BGR2GRAY)
+    if args.median_filter == True:
+        img = cv.imread(imagen, cv.COLOR_HSV2BGR)
+        image_gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
         img= cv.medianBlur(image_gray, args.median_value)
     else:
         img = cv.imread(imagen, cv.COLOR_BGR2GRAY)
