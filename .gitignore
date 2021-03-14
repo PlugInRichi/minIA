@@ -5,7 +5,7 @@ images/
 
 #Ingorar los checkpoints de notebooks
 notebooks/.ipynb_checkpoints/*
-*/.ipynb_checkpoints/
+notebooks/DELF/.ipynb_checkpoints/*
 
 #Ignorar parámetros de DEFL
 #notebooks/parameters/*

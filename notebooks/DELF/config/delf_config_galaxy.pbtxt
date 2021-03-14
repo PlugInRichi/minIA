@@ -1,0 +1,14 @@
+model_path: "/home/rick/Proyectos/models/research/delf/delf/python/training/GalaxyZoo_model_local"
+image_scales: .25
+image_scales: .3536
+image_scales: .5
+image_scales: .7071
+image_scales: 1.0
+image_scales: 1.4142
+image_scales: 2.0
+is_tf2_exported: true
+delf_local_config {
+  use_pca: false
+  max_feature_num: 1000
+  score_threshold: 100.0
+}
