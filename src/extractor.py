@@ -27,6 +27,9 @@ parser.add_argument("extr", help='Extractor', choices=['SIFT', 'SURF', 'DELF'])
 parser.add_argument("dir", help='Ruta del directorio de imagenes')
 parser.add_argument("dir_output", help='Ruta del archivo de salida')
 
+parser.add_argument('-median_filter', help='Filtro de mediana', default=False, type=bool)
+parser.add_argument('-median_value', help='Valores Impares', default=15, type=int)
+
 parser.add_argument("-threshold", help='Parametro de SURF', default=100, type=int)
 parser.add_argument("-nOctaves", help='Parametro de SURF', default=4, type=int)
 parser.add_argument("-nOctaveLayers", help='Parametro de SURF y SIFT', default=3, type=int)
@@ -101,7 +104,14 @@ path_pickle = path.abspath(args.dir_output+'_'+args.extr+'.pickle')
 descriptores = list()
 pickle_file = open(path_pickle, 'wb')
 for imagen in tqdm(path_images):
-    img = cv.imread(imagen, cv.COLOR_BGR2GRAY)
+    
+    if args.median_filter == True:
+        img = cv.imread(imagen, cv.COLOR_HSV2BGR)
+        image_gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
+        img= cv.medianBlur(image_gray, args.median_value)
+    else:
+        img = cv.imread(imagen, cv.COLOR_BGR2GRAY)
+    
     nom_img = path.split(imagen)[1]
     descs_img = extractor.calculoDescriptores(img)
     descs_img['name_img'] = nom_img
