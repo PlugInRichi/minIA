@@ -23,10 +23,13 @@ import argparse
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument("magnitude", help='Selecciona la magnitud asociada a los índices de la imagen',
+parser.add_argument("magnitude",
+  help='Selecciona la magnitud asociada a los índices de la imagen',
   choices=['FRECUENCY', 'WEIGHT'])
-parser.add_argument("original", help='Ruta del archivo de descriptores originales')
-parser.add_argument("cluster", help='Ruta del archivo de descriptores clusterizados')
+parser.add_argument("original",
+  help='Ruta del archivo de descriptores generado por el extractor')
+parser.add_argument("cluster",
+  help='Ruta del archivo de descriptores a generar')
 parser.add_argument("document_name", help='Ruta y nombre del archivo a crear')
 args = parser.parse_args()
 
@@ -65,7 +68,8 @@ def genDocumentWeight(desc_imgs,images_descr):
             img = (dict( (cent, 0) for cent in set(centroides)))
             for cent, kp in  zip(centroides, keypoint):
                 img[cent] += round(kp[2]) #Incrementa el tamaño
-            row = str(len(img))+" "+str(img).replace(", "," ").replace(": ",":")[1:-1]
+            data = str(len(img))+" "+str(img)
+            row = data.replace(", "," ").replace(": ",":")[1:-1]
             file.write(row+'\n')
 
 
