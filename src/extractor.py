@@ -26,6 +26,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("extr", help='Extractor', choices=['SIFT', 'SURF', 'DELF'])
 parser.add_argument("dir", help='Ruta del directorio de imagenes')
 parser.add_argument("dir_output", help='Ruta del archivo de salida')
+parser.add_argument("-auto", help='Cálculo de parámetros automático', action="store_true")
 
 parser.add_argument("-threshold", help='Parametro de SURF', default=100, type=int)
 parser.add_argument("-nOctaves", help='Parametro de SURF', default=4, type=int)
@@ -53,9 +54,12 @@ class Extractor(object):
 
 
 class Sift(Extractor):
-    def __init__(self, nfeatures, nOctaveLayers, contrastThreshold, edgeThreshold, sigma):
-        self.sift = cv.xfeatures2d_SIFT.create(nfeatures, nOctaveLayers,
-        contrastThreshold, edgeThreshold, sigma)
+    def __init__(self, auto, nfeatures, nOctaveLayers, contrastThreshold, edgeThreshold, sigma):
+        if auto:
+            self.sift = cv.xfeatures2d_SIFT.create()
+        else:
+            self.sift = cv.xfeatures2d_SIFT.create(nfeatures, nOctaveLayers,
+            contrastThreshold, edgeThreshold, sigma)
 
     def calculoDescriptores(self, imagen):
         kps, descs = self.sift.detectAndCompute(imagen,None)
@@ -66,9 +70,12 @@ class Sift(Extractor):
 
 
 class Surf(Extractor):
-    def __init__(self, threshold, nOctaves, nOctaveLayers, extended, upright):
-        self.surf = cv.xfeatures2d.SURF_create(threshold, nOctaves, nOctaveLayers,
-        extended, upright)
+    def __init__(self, auto, threshold, nOctaves, nOctaveLayers, extended, upright):
+        if auto:
+            self.surf = cv.xfeatures2d.SURF_create()
+        else:
+            self.surf = cv.xfeatures2d.SURF_create(threshold, nOctaves, nOctaveLayers,
+            extended, upright)
 
     def calculoDescriptores(self, imagen):
         kps, descs = self.surf.detectAndCompute(imagen,None)
@@ -81,10 +88,10 @@ class Surf(Extractor):
 
 #Definición del tipo de extractor
 if args.extr == 'SIFT':
-    extractor = Sift(args.nfeatures, args.nOctaveLayers, args.contrastThreshold,
+    extractor = Sift(args.auto, args.nfeatures, args.nOctaveLayers, args.contrastThreshold,
     args.edgeThreshold, args.sigma)
 elif args.extr == 'SURF':
-    extractor = Surf(args.threshold, args.nOctaves, args.nOctaveLayers,
+    extractor = Surf(args.auto, args.threshold, args.nOctaves, args.nOctaveLayers,
     args.extended, args.upright)
 else:
     #extractor = Delf()
