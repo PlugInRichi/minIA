@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-'''
+"""
 Entradas rutas de directorio con imagenes
 Salida guardar en un archivo
 Seleccionar extractor de caract por comandos (argparse)
 Controlar parámetros extraccion
 Control de formato a la entrada (tamaño y normalización)
-'''
+"""
 import sys
 import os.path as path
 
@@ -111,14 +111,14 @@ path_pickle = path.abspath(args.dir_output+'_'+args.extr+'.pickle')
 descriptores = list()
 pickle_file = open(path_pickle, 'wb')
 for imagen in tqdm(path_images):
-    
+
     if args.median_filter == True:
         img = cv.imread(imagen, cv.COLOR_HSV2BGR)
         image_gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
         img= cv.medianBlur(image_gray, args.median_value)
     else:
         img = cv.imread(imagen, cv.COLOR_BGR2GRAY)
-    
+
     nom_img = path.split(imagen)[1]
     descs_img = extractor.calculoDescriptores(img)
     descs_img['name_img'] = nom_img
