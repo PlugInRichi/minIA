@@ -67,7 +67,7 @@ Utilizando el archivo generado de la clusterización y el generado de la extracc
 3. Ruta Absoluta o Relativa del archivo generado por el cluster
 4. Ruta Absoluta o Relativa del documento a generar
 
-La siguiente ejecución creará un documento con el nombre _clusters_per_images_ midiendo la frecuencia con la que aparecen dentro de la imagen
+La siguiente ejecución creará un documento con el nombre _clusters_per_images_ midiendo el tamaño con el que aparecen dentro de la imagen
 > SMHdocument.py SIZE /test/images_descriptors /test/images_clusters  /test/clusters_per_images
 
 EJECUTAR SMH...
