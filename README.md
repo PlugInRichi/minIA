@@ -39,29 +39,38 @@ El proyecto es dividido en 4 secciones:
 
 ### Extracción de características 
 
-El archivo script encargado de extraer los descriptores es _extractor.py_ para su ejecución es obligatorio la especificación de tres parámetros:
+El script encargado de extraer los descriptores es _extractor.py_ para su ejecución es obligatorio la especificación de tres parámetros:
 1. Tipo de extractor
 2. Ruta Absoluta o Relativa de la carpeta de imágenes
-3. Ruta Absoluta o Relativa del archivo a crear
+3. Ruta Absoluta o Relativa del archivo a generar
 
-La siguiente ejecución creará un archivo Pickle con el nombre _pruebaDescriptor_SIFT_
-> extractor.py SIFT C:\imagenes C:\documents\pruebaDescriptor
+La siguiente ejecución creará un archivo Pickle con el nombre _images_descriptors_
+> extractor.py SIFT /images_dataset /test/images_descriptors
 
 
 ### Clusterización
-El proceso de minado requiere de un vocabulario, utilizando los descriptores generados del paso anterior se realiza un clusterizado con la finalidad de estandarizar nuestro vocabulario, al final de este proceso se obtendrá un nuevo archivo que contendrá los un índice que representa el cluster al que fue asociado ese descriptor. 
+El proceso de minado requiere de un vocabulario, utilizando los descriptores generados del paso anterior se realiza un clusterizado con la finalidad de estandarizar nuestro vocabulario, al final de este proceso se obtendrá un nuevo archivo que contendrá los un índice que representa el cluster al que fue asociado cada descriptor. 
 
-Para hacer la clusterización utilice [este Notebook](minIA/notebooks/Etiquetas_por_imagen.ipynb)
+El script encargado de extraer los descriptores es cluster.py_ para su ejecución es obligatorio la especificación de tres parámetros:
+1. Ruta Absoluta o Relativa del archivo generado por el paso anterior
+2. Ruta Absoluta o Relativa del archivo a generar
+3. Número de cluster (tamaño de vocabulario final)
+
+La siguiente ejecución creará un archivo Pickle con el nombre _images_clusters_ utilizando 2000 clusters
+> cluster.py /test/images_descriptors /test/images_clusters 2000
+
 ### Minado de estructuras 
+Utilizando el archivo generado de la clusterización y el generado de la extracción se crea el doumento de entrada para SHM.
 
-Utilizando el archivo generado de la clusterización y el generado de la extracción se crea el coumento de entrada para SHM
+1. Magnitud asociada a los índices de la imagen (Tamaño o frecuencia)
+2. Ruta Absoluta o Relativa del archivo generado por el extractor
+3. Ruta Absoluta o Relativa del archivo generado por el cluster
+4. Ruta Absoluta o Relativa del documento a generar
+
+La siguiente ejecución creará un documento con el nombre _clusters_per_images_ midiendo la frecuencia con la que aparecen dentro de la imagen
+> SMHdocument.py SIZE /test/images_descriptors /test/images_clusters  /test/clusters_per_images
+
+EJECUTAR SMH...
 
 ### Visualización de estructuras 
 
-El archivo script encargado de extraer los descriptores es _extractor.py_ para su ejecución es obligatorio la especificación de tres parámetros:
-
-## Herramientas 🛠️
-
-_Menciona las herramientas que utilizaste_
-
-* [NombreEnlace](https://github.com/PlugInRichi/) - Mi github
