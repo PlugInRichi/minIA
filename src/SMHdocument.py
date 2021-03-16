@@ -25,12 +25,13 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument("magnitude",
   help='Selecciona la magnitud asociada a los índices de la imagen',
-  choices=['FRECUENCY', 'WEIGHT'])
+  choices=['FRECUENCY', 'SIZE'])
 parser.add_argument("original",
   help='Ruta del archivo de descriptores generado por el extractor')
 parser.add_argument("cluster",
-  help='Ruta del archivo de descriptores a generar')
-parser.add_argument("document_name", help='Ruta y nombre del archivo a crear')
+  help='Ruta del archivo de descriptores generado por el cluster')
+parser.add_argument("document_name",
+  help='Ruta y nombre del documento a generar')
 args = parser.parse_args()
 
 
@@ -52,7 +53,7 @@ def genDocumentFrecuency(desc_imgs,images_descr):
             img+=1
 
 
-def genDocumentWeight(desc_imgs,images_descr):
+def genDocumentSize(desc_imgs,images_descr):
     """
     En cada imagen, toma cada descriptor de la imagen y mide el tamaño asociado
     a cada uno de ellos, si se repiten los descriptores suma ambos tamaños.
@@ -90,6 +91,6 @@ def main(args):
     if args.magnitude == 'FRECUENCY':
         genDocumentFrecuency(desc_imgs,images_descr)
     else:
-        genDocumentWeight(desc_imgs,images_descr)
+        genDocumentSize(desc_imgs,images_descr)
 
 main(args)
