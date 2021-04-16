@@ -123,6 +123,38 @@ for imagen in tqdm(path_images):
     descs_img = extractor.calculoDescriptores(img)
     descs_img['name_img'] = nom_img
     descriptores.append(descs_img)
+   
+Descriptores = [item['descriptors'] for item in descriptores] #"Vectores descriptores"
+Keypoints = [item['keypoints'] for item in descriptores] #"Posicion del vector descriptor"
+Nombre_Img = [item['name_img'] for item in descriptores] #"Nombre de la imagén "
+
+Descriptores2 = list()
+Keypoints2 = list()
+Nombre_Img2 = list()
+
+Descriptores3 = list()
+Keypoints3 = list()
+Nombre_Img3 = list()
+
+for i in Keypoints:
+    if len(i)==0:
+        Keypoints3.append(i)
+    else:
+        Keypoints2.append(i)
+
+for j,k in zip(Descriptores,Nombre_Img):
+    if j is None:
+        Descriptores3.append(j)
+        Nombre_Img3.append(k)
+    else:
+        Descriptores2.append(j)
+        Nombre_Img2.append(k) 
+        
+descriptores2 = list()
+for i in np.arange(0,len(Keypoints2),1):
+    jun = dict(keypoints = Keypoints2[i],descriptors = Descriptores2[i],name_img = Nombre_Img2[i])
+    descriptores2.append(jun)
+    
 pickle.dump(args, pickle_file)
-pickle.dump(descriptores, pickle_file)
+pickle.dump(descriptores2, pickle_file)
 print('¡Listo! ' + args.extr)
