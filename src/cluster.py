@@ -25,10 +25,11 @@ parser.add_argument('descriptors',
   help = 'Ruta del archivo generado por el extractor')
 parser.add_argument('cluster',
   help = 'Ruta del archivo a generar')
-parser.add_argument('Nclusters', help = 'Número de clusters', type=int)
+parser.add_argument('Nclusters',
+  help = 'Número de clusters', type=int)
 args = parser.parse_args()
 
-def main(args):
+def main(args=args):
     with open(args.descriptors, 'rb') as pickle_file:
         params = pickle.load(pickle_file) #Parámetros de extración
         desc_imgs = pickle.load(pickle_file) #Lista de descriptores
@@ -74,4 +75,6 @@ def main(args):
         #Se guarda en un archivo pickle
         with open(args.cluster, 'wb') as pickle_file:
             pickle.dump(labels, pickle_file)
-main(args)
+            
+if __name__ == '__main__':
+  main()
