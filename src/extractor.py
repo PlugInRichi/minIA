@@ -130,7 +130,7 @@ def main(args=args):
 
         nom_img = path.split(imagen)[1]
         descs_img = extractor.calculoDescriptores(img)
-        if descs_img['descriptors'] != None:
+        if descs_img['descriptors'] is not None:
             descs_img['name_img'] = nom_img
             descriptores.append(descs_img)
 
