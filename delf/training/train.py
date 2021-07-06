@@ -37,8 +37,8 @@ from delf.python.training.datasets import googlelandmarks as gld
 from delf.python.training.model import delf_model
 from delf.python.training.model import delg_model
 
-gpus= tf.config.experimental.list_physical_devices('GPU')
-tf.config.experimental.set_memory_growth(gpus[0], True)
+#gpus= tf.config.experimental.list_physical_devices('GPU')
+#tf.config.experimental.set_memory_growth(gpus[0], True)
 
 FLAGS = flags.FLAGS
 
@@ -268,6 +268,8 @@ def main(argv):
     # ------------------------------------------------------------
     # Setup DELF model and optimizer.
     model = create_model(num_classes)
+    model.built = True
+    model.load_weights(FLAGS.imagenet_checkpoint)
     logging.info('Model, datasets loaded.\nnum_classes= %d', num_classes)
 
     optimizer = tf.keras.optimizers.SGD(learning_rate=initial_lr, momentum=0.9)
@@ -442,8 +444,9 @@ def main(argv):
           logging.info('Attempting to load ImageNet pretrained weights.')
           input_batch = next(train_iter)
           _, _, _ = distributed_train_step(input_batch)
-          model.backbone.restore_weights(FLAGS.imagenet_checkpoint)
-          logging.info('Done.')
+          model.built = True
+          model.load_weights(FLAGS.imagenet_checkpoint)
+          logging.info('\n\n Cheakpoint Load Sucessfully...\n')
         else:
           logging.info('Skip loading ImageNet pretrained weights.')
         if FLAGS.debug:
