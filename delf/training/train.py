@@ -64,6 +64,9 @@ flags.DEFINE_boolean(
 flags.DEFINE_string(
     'imagenet_checkpoint', None,
     'ImageNet checkpoint for ResNet backbone. If None, no checkpoint is used.')
+flags.DEFINE_string(
+    'galaxy_checkpoint', None,
+    'Local galaxy checkpoint. If None, no checkpoint is used.')
 flags.DEFINE_float(
     'attention_loss_weight', 1.0,
     'Weight to apply to the attention loss when calculating the '
@@ -212,8 +215,8 @@ def main(argv):
   # Determine the number of classes based on the version of the dataset.
   #gld_info = gld.GoogleLandmarksInfo()
   #num_classes = gld_info.num_classes[FLAGS.dataset_version]
-  num_classes = 14 
-  
+  num_classes = 14
+
   # ------------------------------------------------------------
   # Create the distributed train/validation sets.
   train_dataset = gld.CreateDataset(
@@ -268,8 +271,11 @@ def main(argv):
     # ------------------------------------------------------------
     # Setup DELF model and optimizer.
     model = create_model(num_classes)
-    model.built = True
-    model.load_weights(FLAGS.imagenet_checkpoint)
+    if FLAGS.galaxy_checkpoint is not None:
+      logging.info('Attempting to load local pretrained weights.')
+      model.built = True
+      model.load_weights(FLAGS.galaxy_checkpoint)
+      logging.info('Done .')
     logging.info('Model, datasets loaded.\nnum_classes= %d', num_classes)
 
     optimizer = tf.keras.optimizers.SGD(learning_rate=initial_lr, momentum=0.9)
@@ -444,11 +450,15 @@ def main(argv):
           logging.info('Attempting to load ImageNet pretrained weights.')
           input_batch = next(train_iter)
           _, _, _ = distributed_train_step(input_batch)
+          model.backbone.restore_weights(FLAGS.imagenet_checkpoint)
+          logging.info('Done.')
+        elif FLAGS.galaxy_checkpoint is not None:
+          logging.info('Attempting to load local pretrained weights.')
           model.built = True
-          model.load_weights(FLAGS.imagenet_checkpoint)
-          logging.info('\n\n Cheakpoint Load Sucessfully...\n')
+          model.load_weights(FLAGS.galaxy_checkpoint)
+          logging.info('Done.')
         else:
-          logging.info('Skip loading ImageNet pretrained weights.')
+          logging.info('Skip loading pretrained weights.')
         if FLAGS.debug:
           model.backbone.log_weights()
 
