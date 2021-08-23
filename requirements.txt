@@ -36,7 +36,7 @@ nbconvert==6.0.7
 nbformat==5.0.8
 nest-asyncio==1.4.2
 networkx==2.5
-notebook==6.1.4
+notebook==6.4.1
 numpy==1.19.2
 opencv-contrib-python==3.4.2.16
 packaging==20.4
