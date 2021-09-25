@@ -1,6 +1,7 @@
+import os
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
+import cv2 as cv
 import random
 
 debiased = [
@@ -60,27 +61,56 @@ def downsamplig(classes):
     random.shuffle(classes[14])
     random.shuffle(classes[15])
     random.shuffle(classes[17])
-    classes[14] =  classes[14][0:len(classes[14])//2]
-    classes[15] =  classes[15][0:len(classes[15])//3]
-    classes[17] =  classes[17][0:(len(classes[14])//5)*3]
+    classes[14] = classes[14][0:len(classes[14])//2]
+    classes[15] = classes[15][0:len(classes[15])//3]
+    classes[17] = classes[17][0:(len(classes[14])//5)*3]
 
 def createTrainingFile(ruta, images_class):
-    id_classes = range(0,len(images_class))
-    with open(ruta,'w') as dataset:
+    id_classes = range(0, len(images_class))
+    with open(ruta, 'w') as dataset:
         dataset.write('type_galaxy_id,images\n')
-        for class_id, img_class in zip(id_classes,images_class):
+        for class_id, img_class in zip(id_classes, images_class):
             images = ' '.join(img_class)
-            dataset.write(str(class_id)+','+images+'\n')
+            dataset.write(str(class_id) + ',' + images+'\n')
 
 
+def filterImg(image, kernel, th=6):
+    img_gray = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
+    mask = cv.erode(img_gray, kernel, iterations=3)
+    mask = cv.blur(mask, (5, 5))
+    mask[mask <= th] = 0
+    mask[mask > 0] = 1
+    return cv.bitwise_and(image, image, mask=mask)
 
-def createImageDataSet(images):
-    pass
+
+def changePosition(image):
+    height, width = image.shape[:2]
+    center = (width / 2, height / 2)
+    quarter_height, quarter_width = height / 8, width / 8
+    T = np.float32([
+            [1, 0, quarter_width],
+            [0, 1, quarter_height]])
+    R = cv.getRotationMatrix2D(center, angle=30, scale=1)
+    img_translation = cv.warpAffine(image, T, (width, height))
+    img_rotation = cv.warpAffine(image, R, (width, height))
+    img_flip = cv.flip(img_rotation, -1)
+    return img_flip
+
+
+def createImageDataSet(images, dir_path):
+    kernel = np.ones((3, 3), np.uint8)
+    for image_name in images:
+        path = os.path.join(dir_path, image_name + '.jpg')
+        image = cv.imread(path, cv.IMREAD_COLOR)
+        img_filtered = filterImg(image, kernel, 6)
+        new_image = changePosition(img_filtered)
+        cv.imwrite(os.path.join(dir_path, image_name + 'F' + '.jpg'), new_image)
 
 
 if __name__ == '__main__':
     galaxyZoo2 = r'/home/rick/Proyectos/minIA.old/notebooks/DataCharacterization/zoo2MainSpecz.csv'
     train_file = r'/home/rick/Proyectos/minIA/delf/GZ2_classes.csv'
+    images_dir = r''
 
     df_g = pd.read_csv(galaxyZoo2)
     df_img = getBestScores(df_g, 0.8)  # use df for testing
@@ -89,6 +119,6 @@ if __name__ == '__main__':
     images = set()
     for img_class in img_per_class:
         images += set(img_class)
-    createImageDataSet(images)
+    createImageDataSet(images, images_dir)
     createTrainingFile(train_file, img_per_class)
 
