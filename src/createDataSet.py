@@ -2,6 +2,7 @@ import os
 import pandas as pd
 import numpy as np
 import cv2 as cv
+from tqdm import tqdm
 import random
 from minIA.imageProcessing import filterImg, changePosition
 
@@ -67,24 +68,32 @@ def downsamplig(classes):
     classes[17] = classes[17][0:(len(classes[14]) // 5) * 3]
 
 
-def createTrainingFile(ruta, images_class):
+def createTrainingFile(ruta, images_class, in_image_dir):
     id_classes = range(0, len(images_class))
     with open(ruta, 'w') as dataset:
         dataset.write('type_galaxy_id,images\n')
         for class_id, img_class in zip(id_classes, images_class):
+            img_class &= in_image_dir
             images = ' '.join(img_class) + ' F' + ' F'.join(img_class)
             dataset.write(str(class_id) + ',' + images + '\n')
 
 
 def createImageDataSet(images, dir_path):
     kernel = np.ones((3, 3), np.uint8)
-    for image_name in images:
+    in_image_dir = set()
+    all_images = set()
+    for img_class in images:
+        all_images |= img_class
+    for image_name in tqdm(all_images):
         path = os.path.join(dir_path, image_name + '.jpg')
-        print(path)
         image = cv.imread(path, cv.IMREAD_COLOR)
-        img_filtered = filterImg(image, kernel, 6)
-        new_image = changePosition(img_filtered)
-        cv.imwrite(os.path.join(dir_path, 'F' + image_name + '.jpg'), new_image)
+        if image is not None:
+            img_filtered = filterImg(image, kernel, 6)
+            new_image = changePosition(img_filtered)
+            cv.imwrite(os.path.join(dir_path, 'F' + image_name + '.jpg'), new_image)
+            in_image_dir.add(image_name)
+    print(len(in_image_dir), '/', len(all_images))
+    return in_image_dir
 
 
 if __name__ == '__main__':
@@ -98,18 +107,15 @@ if __name__ == '__main__':
     df_data = pd.read_csv(galaxyZoo2)
     df_map = pd.read_csv(map)
     df_data = df_data.join(df_map, lsuffix='_caller', rsuffix='_other')
-    df_data = df_data.sample(n=300, random_state=1) #Only for test
+    df_data = df_data.sample(n=3000, random_state=1) #Only for test
 
     df_img = getBestScores(df_data, th_score)
     img_per_class = imagesPerClass(df_img)
     downsamplig(img_per_class)
 
     print('Creando imágenes filtradas... ')
-    images = set()
-    for img_class in img_per_class:
-        images |= set(img_class)
-    createImageDataSet(images, images_dir)
-
+    images = [set(img_class) for img_class in img_per_class]
+    in_image_dir = createImageDataSet(images, images_dir)
     print('Exportando archivo de entrenamiento... ')
-    createTrainingFile(train_file, img_per_class)
+    createTrainingFile(train_file, images, in_image_dir)
     print('Hecho!')
