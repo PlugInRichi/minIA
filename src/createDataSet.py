@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 import cv2 as cv
 import random
-from ..minIA.imageProcessing import filterImg, changePosition
+from minIA.imageProcessing import filterImg, changePosition
 
 debiased = [
     'asset_id',
@@ -72,7 +72,7 @@ def createTrainingFile(ruta, images_class):
     with open(ruta, 'w') as dataset:
         dataset.write('type_galaxy_id,images\n')
         for class_id, img_class in zip(id_classes, images_class):
-            images = ' '.join(img_class)
+            images = ' '.join(img_class) + ' F' + ' F'.join(img_class)
             dataset.write(str(class_id) + ',' + images + '\n')
 
 
@@ -80,28 +80,36 @@ def createImageDataSet(images, dir_path):
     kernel = np.ones((3, 3), np.uint8)
     for image_name in images:
         path = os.path.join(dir_path, image_name + '.jpg')
+        print(path)
         image = cv.imread(path, cv.IMREAD_COLOR)
         img_filtered = filterImg(image, kernel, 6)
         new_image = changePosition(img_filtered)
-        cv.imwrite(os.path.join(dir_path, image_name + 'F' + '.jpg'), new_image)
+        cv.imwrite(os.path.join(dir_path, 'F' + image_name + '.jpg'), new_image)
 
 
 if __name__ == '__main__':
     galaxyZoo2 = r'/home/rick/Proyectos/minIA.old/notebooks/DataCharacterization/zoo2MainSpecz.csv'
     map = r'/home/rick/Proyectos/minIA.old/notebooks/DataCharacterization/gz2_filename_mapping.csv'
     train_file = r'/home/rick/Proyectos/minIA/delf/GZ2_classes.csv'
-    images_dir = r''
+    images_dir = r'/home/rick/Proyectos/minIA/images/images_gz2/images'
     th_score = 0.8
 
+    print('Obteniendo clases por imagen... ')
     df_data = pd.read_csv(galaxyZoo2)
     df_map = pd.read_csv(map)
     df_data = df_data.join(df_map, lsuffix='_caller', rsuffix='_other')
+    df_data = df_data.sample(n=300, random_state=1) #Only for test
 
     df_img = getBestScores(df_data, th_score)
     img_per_class = imagesPerClass(df_img)
     downsamplig(img_per_class)
+
+    print('Creando imágenes filtradas... ')
     images = set()
     for img_class in img_per_class:
-        images += set(img_class)
+        images |= set(img_class)
     createImageDataSet(images, images_dir)
+
+    print('Exportando archivo de entrenamiento... ')
     createTrainingFile(train_file, img_per_class)
+    print('Hecho!')
