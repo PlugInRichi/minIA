@@ -3,9 +3,10 @@ import pandas as pd
 import numpy as np
 import cv2 as cv
 import random
+from ..minIA.imageProcessing import filterImg, changePosition
 
 debiased = [
-    'dr7objid',
+    'asset_id',
     't08_odd_feature_a19_ring_debiased',
     't08_odd_feature_a20_lens_or_arc_debiased',
     't08_odd_feature_a21_disturbed_debiased',
@@ -61,9 +62,10 @@ def downsamplig(classes):
     random.shuffle(classes[14])
     random.shuffle(classes[15])
     random.shuffle(classes[17])
-    classes[14] = classes[14][0:len(classes[14])//2]
-    classes[15] = classes[15][0:len(classes[15])//3]
-    classes[17] = classes[17][0:(len(classes[14])//5)*3]
+    classes[14] = classes[14][0:len(classes[14]) // 2]
+    classes[15] = classes[15][0:len(classes[15]) // 3]
+    classes[17] = classes[17][0:(len(classes[14]) // 5) * 3]
+
 
 def createTrainingFile(ruta, images_class):
     id_classes = range(0, len(images_class))
@@ -71,30 +73,7 @@ def createTrainingFile(ruta, images_class):
         dataset.write('type_galaxy_id,images\n')
         for class_id, img_class in zip(id_classes, images_class):
             images = ' '.join(img_class)
-            dataset.write(str(class_id) + ',' + images+'\n')
-
-
-def filterImg(image, kernel, th=6):
-    img_gray = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
-    mask = cv.erode(img_gray, kernel, iterations=3)
-    mask = cv.blur(mask, (5, 5))
-    mask[mask <= th] = 0
-    mask[mask > 0] = 1
-    return cv.bitwise_and(image, image, mask=mask)
-
-
-def changePosition(image):
-    height, width = image.shape[:2]
-    center = (width / 2, height / 2)
-    quarter_height, quarter_width = height / 8, width / 8
-    T = np.float32([
-            [1, 0, quarter_width],
-            [0, 1, quarter_height]])
-    R = cv.getRotationMatrix2D(center, angle=30, scale=1)
-    img_translation = cv.warpAffine(image, T, (width, height))
-    img_rotation = cv.warpAffine(image, R, (width, height))
-    img_flip = cv.flip(img_rotation, -1)
-    return img_flip
+            dataset.write(str(class_id) + ',' + images + '\n')
 
 
 def createImageDataSet(images, dir_path):
@@ -109,11 +88,16 @@ def createImageDataSet(images, dir_path):
 
 if __name__ == '__main__':
     galaxyZoo2 = r'/home/rick/Proyectos/minIA.old/notebooks/DataCharacterization/zoo2MainSpecz.csv'
+    map = r'/home/rick/Proyectos/minIA.old/notebooks/DataCharacterization/gz2_filename_mapping.csv'
     train_file = r'/home/rick/Proyectos/minIA/delf/GZ2_classes.csv'
     images_dir = r''
+    th_score = 0.8
 
-    df_g = pd.read_csv(galaxyZoo2)
-    df_img = getBestScores(df_g, 0.8)  # use df for testing
+    df_data = pd.read_csv(galaxyZoo2)
+    df_map = pd.read_csv(map)
+    df_data = df_data.join(df_map, lsuffix='_caller', rsuffix='_other')
+
+    df_img = getBestScores(df_data, th_score)
     img_per_class = imagesPerClass(df_img)
     downsamplig(img_per_class)
     images = set()
@@ -121,4 +105,3 @@ if __name__ == '__main__':
         images += set(img_class)
     createImageDataSet(images, images_dir)
     createTrainingFile(train_file, img_per_class)
-
