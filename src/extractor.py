@@ -4,7 +4,6 @@
 Exporta una lista (archivo pickle) que contiene los keypoints, descriptores
 y nombre del archivo para cada imagen encontrada en el directorio.
 """
-import sys
 import os.path as path
 
 from minIA.utiles import lectura_img
@@ -135,4 +134,4 @@ def main(args=args):
     print('¡Listo! ' + args.extr)
 
 if __name__ == '__main__':
-  main()
+    main()
