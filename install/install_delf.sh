@@ -84,18 +84,6 @@ install_python_libraries() {
   handle_exit_code ${exit_code} "Unable to install python3-tk."
 }
 
-install_object_detection() {
-  # Installs the object detection package from tensorflow/models/research.
-  echo "Installing object detection"
-  pushd . > /dev/null
-  cd ../../../..
-  export PYTHONPATH=$PYTHONPATH:`pwd`
-  pip3 install object_detection
-  local exit_code=$?
-  handle_exit_code ${exit_code} "Unable to install the object_detection package."
-  popd > /dev/null
-}
-
 install_delf_package() {
   # Installs the DELF package from tensorflow/models/research/delf/delf.
   echo "Installing DELF package"
