@@ -18,7 +18,7 @@ from setuptools import setup, find_packages
 
 install_requires = [
     'absl-py == 0.7.1',
-    'protobuf == 3.8.0',
+    'protobuf == 3.15.0',
     'pandas == 0.24.2',
     'numpy == 1.16.1',
     'scipy == 1.4.1',
