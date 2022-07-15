@@ -26,4 +26,3 @@ RUN python -m pip install .
 WORKDIR /models/research/delf/delf/python/training
 RUN bash install_delf.sh
 
-

@@ -17,14 +17,14 @@
 from setuptools import setup, find_packages
 
 install_requires = [
-    'absl-py == 0.7.1',
-    'protobuf == 3.8.0',
-    'pandas == 0.24.2',
-    'numpy == 1.16.1',
-    'scipy == 1.4.1',
+    'absl-py >= 0.7.1',
+    'protobuf >= 3.8.0',
+    'pandas >= 0.24.2',
+    'numpy >= 1.16.1',
+    'scipy >= 1.4.1',
     #'tensorflow == 2.2.0',
     'tf_slim >= 1.1',
-    'tensorflow_probability == 0.9.0',
+    'tensorflow_probability >= 0.9.0',
 ]
 
 setup(

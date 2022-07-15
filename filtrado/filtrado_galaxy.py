@@ -4,7 +4,7 @@
 import sys
 import os.path as path 
 
-modulos_path = path.abspath('../minIA')
+modulos_path = path.abspath('../src/minIA')
 if modulos_path not in sys.path:
     sys.path.append(modulos_path)
 
