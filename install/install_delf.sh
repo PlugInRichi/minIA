@@ -105,8 +105,6 @@ post_install_check() {
 }
 
 install_delf() {
-  # Orchestrates DELF package installation.
-  # install_tensorflow
   install_tf_slim
   download_protoc
   compile_delf_protos
