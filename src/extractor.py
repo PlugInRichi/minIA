@@ -4,17 +4,12 @@
 Exporta una lista (archivo pickle) que contiene los keypoints, descriptores
 y nombre del archivo para cada imagen encontrada en el directorio.
 """
-import sys
 import os.path as path
 
-modulos_path = path.abspath('../minIA')
-if modulos_path not in sys.path:
-    sys.path.append(modulos_path)
 
-from utiles import lectura_img
+from minIA.utiles import lectura_img
 from tqdm import tqdm
 import argparse
-import numpy as np
 import cv2 as cv
 import pickle
 

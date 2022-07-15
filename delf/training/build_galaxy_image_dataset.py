@@ -126,7 +126,9 @@ def _get_clean_train_image_files_and_labels(csv_path, image_dir):
   image_paths = tf.io.gfile.glob(os.path.join(image_dir, '*.jpg')) #Bien
   for image_path in image_paths:
     file_id = os.path.basename(os.path.normpath(image_path))[:-4]
+    print(images,file_id)
     if file_id in images:
+      print('Pasó')
       images[file_id]['image_path'] = image_path
 
   # Explode the dictionary into lists (1 per image attribute).
