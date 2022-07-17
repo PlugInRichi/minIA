@@ -14,6 +14,8 @@ RUN git clone https://github.com/tensorflow/models.git
 WORKDIR models 
 RUN git checkout a003b7c
 
+RUN apt-get install -y libsm6 libxext6 libxrender-dev
+
 WORKDIR research 
 COPY setup.py delf/setup.py
 COPY install_delf.sh delf/delf/python/training/install_delf.sh
@@ -26,3 +28,5 @@ RUN python -m pip install .
 WORKDIR /models/research/delf/delf/python/training
 RUN bash install_delf.sh
 
+COPY requirements.txt requirements.txt
+RUN pip install -r requirements.txt
