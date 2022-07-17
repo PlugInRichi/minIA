@@ -11,7 +11,7 @@ Parámetros:
     Dirección absoluta o relativa de búsqueda
 '''
 def lectura_img(name_dir):
-    path_img = path.join(path.abspath('..'), name_dir)
+    path_img = path.join(path.abspath('../..'), name_dir)
     if path.exists(path_img):
         return [archivo.path for archivo in scandir(path_img)]
     elif path.exists(name_dir):
