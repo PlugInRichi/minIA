@@ -1,0 +1,150 @@
+import os
+import pandas as pd
+import numpy as np
+import cv2 as cv
+from tqdm import tqdm
+import random
+from minIA.imageProcessing import filterImg, changePosition
+
+debiased = [
+    'asset_id',
+    't08_odd_feature_a19_ring_debiased',
+    't08_odd_feature_a20_lens_or_arc_debiased',
+    't08_odd_feature_a21_disturbed_debiased',
+    't08_odd_feature_a22_irregular_debiased',
+    't08_odd_feature_a24_merger_debiased',
+    't08_odd_feature_a38_dust_lane_debiased',
+
+    't11_arms_number_a31_1_debiased',
+    't11_arms_number_a32_2_debiased',
+    #'t11_arms_number_a33_3_debiased',
+    #'t11_arms_number_a34_4_debiased',
+
+    't05_bulge_prominence_a10_no_bulge_debiased',
+    't05_bulge_prominence_a11_just_noticeable_debiased',
+    't05_bulge_prominence_a12_obvious_debiased',
+    't05_bulge_prominence_a13_dominant_debiased',
+
+    't07_rounded_a16_completely_round_debiased',
+    't07_rounded_a17_in_between_debiased',
+    't07_rounded_a18_cigar_shaped_debiased',
+
+    't09_bulge_shape_a25_rounded_debiased',
+    't09_bulge_shape_a26_boxy_debiased',
+    't09_bulge_shape_a27_no_bulge_debiased',
+
+    't10_arms_winding_a28_tight_debiased',
+    't10_arms_winding_a29_medium_debiased',
+    't10_arms_winding_a30_loose_debiased']
+
+class_names = [
+    't08_ring',
+    't08_lens_or_arc',
+    't08_disturbed',
+    't08_irregular',
+    't08_merger',
+    't08_dust_lane',
+
+    't11_arms_number_1',
+    't11_arms_number_2',
+    #'t11_arms_number_3',
+    #'t11_arms_number_4',
+
+    't05_no_bulge',
+    't05_just_noticeable',
+    't05_obvious',
+    't05_dominant',
+
+    't07_completely_round',
+    't07_in_between',
+    't07_cigar_shaped',
+
+    't09_rounded',
+    't09_boxy',
+    't09_no_bulge',
+
+    't10_tight',
+    't10_medium',
+    't10_loose']
+
+def getBestScores(df, threshold):
+    """
+    Get the classes with una confiabilidad superior a threshold
+    """
+    df2 = df[debiased].copy()
+    df2 = df2[df2 > threshold]
+    df2.columns = range(len(df2.columns))
+    return df2
+
+
+def imagesPerClass(df):
+    """
+    Create a list of lists where every sublist is the names of the images assigned to that class
+    """
+    classes = list()
+    for class_ in range(1, len(df.columns)):
+        images_class = df[[0, class_]].dropna()[0].astype(str).tolist()  # Hacer un downsapling para grnades
+        classes.append(images_class)
+    return classes
+
+
+def downsamplig(classes):
+    for i in range(len(classes)):
+        if len(classes[i]) > 10000:
+            classes[i] = np.random.choice(classes[i], 10000, replace=False)
+
+
+def createTrainingFile(ruta, images_class, in_image_dir):
+    id_classes = range(0, len(images_class))
+    with open(ruta, 'w') as dataset:
+        dataset.write('type_galaxy_id,images\n')
+        for class_id, img_class in zip(id_classes, images_class):
+            img_class &= in_image_dir
+            images = ' '.join(img_class) + ' F' + ' F'.join(img_class)
+            dataset.write(str(class_id) + ',' + images + '\n')
+            print(len(img_class), ' imágenes encontradas para la clase ', class_names[class_id])
+
+
+def createImageDataSet(images, dir_path):
+    kernel = np.ones((3, 3), np.uint8)
+    in_image_dir = set()
+    all_images = set()
+    for img_class in images:
+        all_images |= img_class
+    for image_name in tqdm(all_images):
+        path = os.path.join(dir_path, image_name + '.jpg')
+        image = cv.imread(path, cv.IMREAD_COLOR)
+        if image is not None:
+            img_filtered = filterImg(image, kernel, 6)
+            new_image = changePosition(img_filtered)
+            cv.imwrite(os.path.join(dir_path, 'F' + image_name + '.jpg'), new_image)
+            in_image_dir.add(image_name)
+    print(len(in_image_dir), '/', len(all_images))
+    return in_image_dir
+
+def main():
+    galaxyZoo2 = r'/home/rick/Proyectos/minIA.old/notebooks/DataCharacterization/zoo2MainSpecz.csv'
+    map = r'/home/rick/Proyectos/minIA.old/notebooks/DataCharacterization/gz2_filename_mapping.csv'
+    train_file = r'/home/rick/Proyectos/minIA/delf/GZ2_classes.csv'
+    images_dir = r'/home/rick/Proyectos/minIA/images/images_gz2/images'
+    th_score = 0.8
+
+    print('Obteniendo clases por imagen... ')
+    df_data = pd.read_csv(galaxyZoo2)
+    df_map = pd.read_csv(map)
+    df_data = df_data.join(df_map, lsuffix='_caller', rsuffix='_other')
+
+    df_img = getBestScores(df_data, th_score)
+    img_per_class = imagesPerClass(df_img)
+    downsamplig(img_per_class)
+
+    print('Creando imágenes filtradas... ')
+    images = [set(img_class) for img_class in img_per_class]
+    in_image_dir = createImageDataSet(images, images_dir)
+
+    print('Exportando archivo de entrenamiento... ')
+    createTrainingFile(train_file, images, in_image_dir)
+    print('Hecho!')
+
+if __name__ == '__main__':
+    main()

@@ -6,10 +6,10 @@ y nombre del archivo para cada imagen encontrada en el directorio.
 """
 import os.path as path
 
-
 from minIA.utiles import lectura_img
 from tqdm import tqdm
 import argparse
+import numpy as np
 import cv2 as cv
 import pickle
 
@@ -134,4 +134,4 @@ def main(args=args):
     print('¡Listo! ' + args.extr)
 
 if __name__ == '__main__':
-  main()
+    main()
