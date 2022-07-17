@@ -3,7 +3,7 @@ import cv2 as cv
 import numpy as np
 
 
-def filterImg(image, kernel, th=6):
+def filter_image(image, kernel, th=6):
     img_gray = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
     mask = cv.erode(img_gray, kernel, iterations=3)
     mask = cv.blur(mask, (5, 5))

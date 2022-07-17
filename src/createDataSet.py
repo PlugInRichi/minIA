@@ -29,13 +29,13 @@ def images_per_class(df):
     return classes
 
 
-def downsamplig(classes):
+def downsampling(classes):
     for i in range(len(classes)):
         if len(classes[i]) > 10000:
             classes[i] = np.random.choice(classes[i], 10000, replace=False)
 
 
-def createTrainingFile(ruta, images_class, in_image_dir):
+def create_training_file(ruta, images_class, in_image_dir):
     id_classes = range(0, len(images_class))
     with open(ruta, 'w') as dataset:
         dataset.write('type_galaxy_id,images\n')
@@ -46,7 +46,7 @@ def createTrainingFile(ruta, images_class, in_image_dir):
             print(len(img_class), ' imágenes encontradas para la clase ', CLASS_NAMES[class_id])
 
 
-def createImageDataSet(images, dir_path):
+def create_image_dataset(images, dir_path):
     kernel = np.ones((3, 3), np.uint8)
     in_image_dir = set()
     all_images = set()
@@ -63,6 +63,7 @@ def createImageDataSet(images, dir_path):
     print(len(in_image_dir), '/', len(all_images))
     return in_image_dir
 
+
 def main():
     with open("../data/config/dataset_config.yml", "r") as config_file:
         cfg_dataset = yaml.safe_load(config_file)
@@ -74,15 +75,16 @@ def main():
 
     df_img = get_best_scores(df_data, cfg_dataset['th_score'])
     img_per_class = images_per_class(df_img)
-    downsamplig(img_per_class)
+    downsampling(img_per_class)
 
     print('Creando imágenes filtradas... ')
     images = [set(img_class) for img_class in img_per_class]
-    in_image_dir = createImageDataSet(images, cfg_dataset['images_dir_path'])
+    in_image_dir = create_image_dataset(images, cfg_dataset['images_dir_path'])
 
     print('Exportando archivo de entrenamiento... ')
-    createTrainingFile(cfg_dataset['train_dataset_path'], images, in_image_dir)
+    create_training_file(cfg_dataset['train_dataset_path'], images, in_image_dir)
     print('Hecho!')
+
 
 if __name__ == '__main__':
     main()
