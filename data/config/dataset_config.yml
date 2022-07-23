@@ -1,9 +1,6 @@
-galaxyZoo2_path:  /data/images_gz2/zoo2MainSpecz.csv
+galaxyZoo2_path:  /data/images_gz2/gz2_hart16.csv
 map_images_path:  /data/images_gz2/gz2_filename_mapping.csv
 train_dataset_path: /data/images_gz2/gz2_train_dataset.csv
 images_dir_path: /data/images_gz2/test
 
 th_score: 0.8
-
-
-
