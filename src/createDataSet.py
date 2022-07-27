@@ -10,8 +10,8 @@ from minIA.constrains import SELECTED_TYPES, CLASS_NAMES
 
 def create_dataframe(cfg_dataset):
     df_map = pd.read_csv(cfg_dataset['map_images_path'])
-    df_selected = pd.read_csv(cfg_dataset['galaxyZoo2_path'])[SELECTED_TYPES]
-    df_selected = df_selected.rename(columns={'dr7objid': 'objid'})
+    df_selected = pd.read_csv(cfg_dataset['galaxyZoo2_path']).rename(columns={'dr7objid': 'objid'})
+    df_selected = df_selected[SELECTED_TYPES]
     df_match = df_map.merge(df_selected, on='objid', how='inner')
     df_match['asset_id'] = df_match['asset_id'].astype('string')
     return df_match
