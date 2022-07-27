@@ -4,28 +4,36 @@ import numpy as np
 import cv2 as cv
 import yaml
 from tqdm import tqdm
-from minIA.imageProcessing import filter_image, changePosition
-from minIA.constrains import DEBIASED, CLASS_NAMES
+from minIA.imageProcessing import filter_image, change_position
+from minIA.constrains import SELECTED_TYPES, CLASS_NAMES
 
 
-def get_best_scores(df, threshold):
-    """
-    Get the classes with una confiabilidad superior a threshold
-    """
-    df2 = df[DEBIASED].copy()
-    df2 = df2[df2 > threshold]
-    df2.columns = range(len(df2.columns))
-    return df2
+def create_dataframe(cfg_dataset):
+    df_map = pd.read_csv(cfg_dataset['map_images_path'])
+    df_selected = pd.read_csv(cfg_dataset['galaxyZoo2_path'])[SELECTED_TYPES]
+    df_selected = df_selected.rename(columns={'dr7objid': 'objid'})
+    df_match = df_map.merge(df_selected, on='objid', how='inner')
+    df_match['asset_id'] = df_match['asset_id'].astype('string')
+    return df_match
 
 
-def images_per_class(df):
+def delete_not_found(images_path, df_clean):
+    images_found = set([image_name.split('.')[0] for image_name in os.scandir(images_path)])
+    map_diff = set(df_clean['asset_id']) - images_found
+    found_diff = list(images_found - set(df_clean['asset_id']))
+    for image_lost in found_diff:
+        os.remove(images_path + image_lost + '.jpg')
+    indexes = df_clean['asset_id'].isin(map_diff)
+    return df_clean.loc[indexes]
+
+
+def images_per_class(df_clean):
     """
     Create a list of lists where every sublist is the names of the images assigned to that class
     """
-    classes = list()
-    for class_ in range(1, len(df.columns)):
-        images_class = df[[0, class_]].dropna()[0].astype(str).tolist()  # Hacer un downsapling para grnades
-        classes.append(images_class)
+    classes = {}
+    for galaxy_type in SELECTED_TYPES:
+        classes[galaxy_type] = df_clean['asset_id'][df_clean[galaxy_type] > 0.8]
     return classes
 
 
@@ -57,7 +65,7 @@ def create_image_dataset(images, dir_path):
         image = cv.imread(path, cv.IMREAD_COLOR)
         if image is not None:
             img_filtered = filter_image(image, kernel, 6)
-            new_image = changePosition(img_filtered)
+            new_image = change_position(img_filtered)
             cv.imwrite(os.path.join(dir_path, 'F' + image_name + '.jpg'), new_image)
             in_image_dir.add(image_name)
     print(len(in_image_dir), '/', len(all_images))
@@ -68,17 +76,18 @@ def main():
     with open("../data/config/dataset_config.yml", "r") as config_file:
         cfg_dataset = yaml.safe_load(config_file)
 
-    print('Obteniendo clases por imagen... ')
-    df_data = pd.read_csv(cfg_dataset['galaxyZoo2_path'])
-    df_map = pd.read_csv(cfg_dataset['map_images_path'])
-    df_data = df_data.join(df_map, lsuffix='_caller', rsuffix='_other')
+    print('Creating Dataframe... ')
+    df_clean = create_dataframe(cfg_dataset)
 
-    df_img = get_best_scores(df_data, cfg_dataset['th_score'])
-    img_per_class = images_per_class(df_img)
-    downsampling(img_per_class)
+    print('Deleting lost images... ')
+    df_clean = delete_not_found(cfg_dataset['images_dir_path'], df_clean)
+
+    print('Making some groups... ')
+    galaxy_groups = images_per_class(df_clean)
+    downsampling(galaxy_groups)
 
     print('Creando imágenes filtradas... ')
-    images = [set(img_class) for img_class in img_per_class]
+    images = [set(img_class) for img_class in galaxy_groups]
     in_image_dir = create_image_dataset(images, cfg_dataset['images_dir_path'])
 
     print('Exportando archivo de entrenamiento... ')
@@ -87,4 +96,8 @@ def main():
 
 
 if __name__ == '__main__':
+    import os
+
+    os.chdir('/')
+
     main()
