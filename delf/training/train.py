@@ -24,7 +24,6 @@ from __future__ import division
 from __future__ import print_function
 
 import os
-import time
 
 from absl import app
 from absl import flags
@@ -190,28 +189,19 @@ def main(argv):
   # Create the strategy.
   strategy = tf.distribute.MirroredStrategy()
   logging.info('Number of devices: %d', strategy.num_replicas_in_sync)
-  if FLAGS.debug:
-    print('Number of devices:', strategy.num_replicas_in_sync)
 
   max_iters = FLAGS.max_iters
   global_batch_size = FLAGS.batch_size
   image_size = FLAGS.image_size
   num_eval_batches = int(50000 / global_batch_size)
   report_interval = 100
-  eval_interval = 1000
-  save_interval = 1000
+  eval_interval = 5000
+  save_interval = 5000
 
   initial_lr = FLAGS.initial_lr
 
   clip_val = tf.constant(10.0)
 
-  if FLAGS.debug:
-    tf.config.run_functions_eagerly(True)
-    global_batch_size = 4
-    max_iters = 100
-    num_eval_batches = 1
-    save_interval = 1
-    report_interval = 10
 
   # Determine the number of classes based on the version of the dataset.
   #gld_info = gld.GoogleLandmarksInfo()
@@ -460,11 +450,7 @@ def main(argv):
           logging.info('Done.')
         else:
           logging.info('Skip loading pretrained weights.')
-        if FLAGS.debug:
-          model.backbone.log_weights()
 
-        last_summary_step_value = None
-        last_summary_time = None
         while global_step_value < max_iters:
           # input_batch : images(b, h, w, c), labels(b,).
           try:
@@ -505,25 +491,6 @@ def main(argv):
               attn_train_accuracy.result(),
               step=global_step)
 
-          # Summary for number of global steps taken per second.
-          current_time = time.time()
-          if (last_summary_step_value is not None and
-              last_summary_time is not None):
-            tf.summary.scalar(
-                'global_steps_per_sec',
-                (global_step_value - last_summary_step_value) /
-                (current_time - last_summary_time),
-                step=global_step)
-          if tf.summary.should_record_summaries().numpy():
-            last_summary_step_value = global_step_value
-            last_summary_time = current_time
-
-          # Print to console if running locally.
-          if FLAGS.debug:
-            if global_step_value % report_interval == 0:
-              print(global_step.numpy())
-              print('desc:', desc_dist_loss.numpy())
-              print('attn:', attn_dist_loss.numpy())
 
           # Validate once in {eval_interval*n, n \in N} steps.
           if global_step_value % eval_interval == 0:
@@ -545,10 +512,6 @@ def main(argv):
             logging.info('\nValidation(%f)\n', global_step_value)
             logging.info(': desc: %f\n', desc_validation_result.numpy())
             logging.info(': attn: %f\n', attn_validation_result.numpy())
-            # Print to console.
-            if FLAGS.debug:
-              print('Validation: desc:', desc_validation_result.numpy())
-              print('          : attn:', attn_validation_result.numpy())
 
           # Save checkpoint once (each save_interval*n, n \in N) steps, or if
           # this is the last iteration.
