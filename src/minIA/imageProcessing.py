@@ -12,7 +12,7 @@ def filter_image(image, kernel, th=6):
     return cv.bitwise_and(image, image, mask=mask)
 
 
-def changePosition(image):
+def change_position(image):
     height, width = image.shape[:2]
     center = (width / 2, height / 2)
     eighth_height, eighth_width = height / 8, width / 8
