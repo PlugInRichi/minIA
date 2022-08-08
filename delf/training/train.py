@@ -37,8 +37,9 @@ from delf.python.training.datasets import googlelandmarks as gld
 from delf.python.training.model import delf_model
 from delf.python.training.model import delg_model
 
-#gpus= tf.config.experimental.list_physical_devices('GPU')
-#tf.config.experimental.set_memory_growth(gpus[0], True)
+physical_devices = tf.config.experimental.list_physical_devices('GPU')
+assert len(physical_devices) > 0, "Not enough GPU hardware devices available"
+config = tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
 FLAGS = flags.FLAGS
 
@@ -215,7 +216,7 @@ def main(argv):
   # Determine the number of classes based on the version of the dataset.
   #gld_info = gld.GoogleLandmarksInfo()
   #num_classes = gld_info.num_classes[FLAGS.dataset_version]
-  num_classes = 14
+  num_classes = 24
 
   # ------------------------------------------------------------
   # Create the distributed train/validation sets.
