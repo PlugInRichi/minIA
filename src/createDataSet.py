@@ -5,7 +5,7 @@ import cv2 as cv
 import yaml
 from tqdm import tqdm
 from minIA.imageProcessing import filter_image, change_position
-from minIA.constrains import SELECTED_TYPES, CLASS_NAMES
+from minIA.constrains import SELECTED_TYPES, CLASS_NAMES, PRIOR_TYPES, GALAXY_TYPES
 
 
 def create_dataframe(cfg_dataset):
@@ -18,22 +18,31 @@ def create_dataframe(cfg_dataset):
 
 
 def delete_not_found(images_path, df_clean):
-    images_found = set([image_name.split('.')[0] for image_name in os.scandir(images_path)])
-    map_diff = set(df_clean['asset_id']) - images_found
-    found_diff = list(images_found - set(df_clean['asset_id']))
-    for image_lost in found_diff:
-        os.remove(images_path + image_lost + '.jpg')
+    images_found = set([image_name.split('.')[0] for image_name in os.listdir(images_path)])
+    map_diff = set(df_clean['asset_id']) & images_found
+    #found_diff = list(images_found - set(df_clean['asset_id']))
+    #for image_lost in found_diff:
+    #    os.remove(images_path + image_lost + '.jpg')
     indexes = df_clean['asset_id'].isin(map_diff)
     return df_clean.loc[indexes]
 
 
-def images_per_class(df_clean):
+def create_mask(dataframe, threshold):
+    mask = None
+    for prior in PRIOR_TYPES:
+        if mask is None:
+            mask = dataframe[prior] > threshold
+        else:
+            mask |= dataframe[prior] > threshold
+    return mask
+
+def images_per_class(df_clean, threshold):
     """
     Create a list of lists where every sublist is the names of the images assigned to that class
     """
     classes = {}
     for galaxy_type in SELECTED_TYPES:
-        classes[galaxy_type] = df_clean['asset_id'][df_clean[galaxy_type] > 0.8]
+        classes[galaxy_type] = df_clean['asset_id'][df_clean[galaxy_type] > threshold].to_list()
     return classes
 
 
@@ -43,23 +52,20 @@ def downsampling(classes):
             classes[i] = np.random.choice(classes[i], 10000, replace=False)
 
 
-def create_training_file(ruta, images_class, in_image_dir):
-    id_classes = range(0, len(images_class))
+def create_training_file(ruta, images_class):
+    g_index = 0
     with open(ruta, 'w') as dataset:
         dataset.write('type_galaxy_id,images\n')
-        for class_id, img_class in zip(id_classes, images_class):
-            img_class &= in_image_dir
-            images = ' '.join(img_class) + ' F' + ' F'.join(img_class)
-            dataset.write(str(class_id) + ',' + images + '\n')
-            print(len(img_class), ' imágenes encontradas para la clase ', CLASS_NAMES[class_id])
+        for galaxy_type in SELECTED_TYPES:
+            names = ' '.join(images_class[galaxy_type]) + ' F' + ' F'.join(images_class[galaxy_type])
+            dataset.write(str(g_index) + ',' + names + '\n')
+            g_index += 1
 
 
 def create_image_dataset(images, dir_path):
     kernel = np.ones((3, 3), np.uint8)
     in_image_dir = set()
-    all_images = set()
-    for img_class in images:
-        all_images |= img_class
+    all_images = images
     for image_name in tqdm(all_images):
         path = os.path.join(dir_path, image_name + '.jpg')
         image = cv.imread(path, cv.IMREAD_COLOR)
@@ -82,16 +88,20 @@ def main():
     print('Deleting lost images... ')
     df_clean = delete_not_found(cfg_dataset['images_dir_path'], df_clean)
 
+    print('Applying mask to prioritize underrepresented classes...')
+    mask = create_mask(df_clean, cfg_dataset['th_score'])
+
+    df_test = df_clean[mask].sample(10000, random_state=6564)
+
     print('Making some groups... ')
-    galaxy_groups = images_per_class(df_clean)
-    downsampling(galaxy_groups)
+    galaxy_groups = images_per_class(df_test, cfg_dataset['th_score'])
 
     print('Creando imágenes filtradas... ')
-    images = [set(img_class) for img_class in galaxy_groups]
-    in_image_dir = create_image_dataset(images, cfg_dataset['images_dir_path'])
+    images = df_test['asset_id'].to_list()
+    in_image_dir = create_image_dataset(images, cfg_dataset['images_dir_path']) #faltaron 3?
 
     print('Exportando archivo de entrenamiento... ')
-    create_training_file(cfg_dataset['train_dataset_path'], images, in_image_dir)
+    create_training_file(cfg_dataset['train_dataset_path'], galaxy_groups)
     print('Hecho!')
 
 
