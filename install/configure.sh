@@ -1,8 +1,8 @@
 
-cd ../data
+cd data
 mkdir "tf_records"
 mkdir "models"
-mkdir -p "images"
+mkdir -p "images/images_gz2"
 
 wget -O images_gz2.zip https://zenodo.org/record/3565489/files/images_gz2.zip?download=1
 zip -d images_gz2.zip "__MACOSX"
