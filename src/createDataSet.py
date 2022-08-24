@@ -52,13 +52,16 @@ def downsampling(classes):
             classes[i] = np.random.choice(classes[i], 10000, replace=False)
 
 
-def create_training_file(ruta, images_class):
+def create_training_file(full_path, filtered_path, images_class):
     g_index = 0
-    with open(ruta, 'w') as dataset:
-        dataset.write('type_galaxy_id,images\n')
+    with open(full_path, 'w') as full_dataset, open(filtered_path, 'w') as filtered_dataset:
+        full_dataset.write('type_galaxy_id,images\n')
+        filtered_dataset.write('type_galaxy_id,images\n')
         for galaxy_type in SELECTED_TYPES:
-            names = ' '.join(images_class[galaxy_type]) + ' F' + ' F'.join(images_class[galaxy_type])
-            dataset.write(str(g_index) + ',' + names + '\n')
+            names = 'F' + ' F'.join(images_class[galaxy_type])
+            filtered_dataset.write(str(g_index) + ',' + names + '\n')
+            names = names + ' ' + ' '.join(images_class[galaxy_type])
+            full_dataset.write(str(g_index) + ',' + names + '\n')
             g_index += 1
 
 
@@ -101,7 +104,9 @@ def main():
     in_image_dir = create_image_dataset(images, cfg_dataset['images_dir_path']) #faltaron 3?
 
     print('Exportando archivo de entrenamiento... ')
-    create_training_file(cfg_dataset['train_dataset_path'], galaxy_groups)
+    create_training_file(cfg_dataset['full_train_dataset_path'],
+                         cfg_dataset['filtered_train_dataset_path'],
+                         galaxy_groups)
     print('Hecho!')
 
 
