@@ -93,14 +93,17 @@ def main():
 
     print('Applying mask to prioritize underrepresented classes...')
     mask = create_mask(df_clean, cfg_dataset['th_score'])
-
-    df_test = df_clean[mask].sample(10000, random_state=6564)
+    df_clean = df_clean[mask]
+    print('Total of calculated samples: ', len(df_clean))
+    if 'sample_size' in cfg_dataset:
+        print('Using a sample of size ', cfg_dataset['sample_size'])
+        df_clean = df_clean.sample(cfg_dataset['sample_size'], random_state=6564)
 
     print('Making some groups... ')
-    galaxy_groups = images_per_class(df_test, cfg_dataset['th_score'])
+    galaxy_groups = images_per_class(df_clean, cfg_dataset['th_score'])
 
     print('Creando imágenes filtradas... ')
-    images = df_test['asset_id'].to_list()
+    images = df_clean['asset_id'].to_list()
     in_image_dir = create_image_dataset(images, cfg_dataset['images_dir_path']) #faltaron 3?
 
     print('Exportando archivo de entrenamiento... ')
