@@ -38,8 +38,41 @@ Adicionalmente será necesario instalar **Sampled-MinHashing**, para ello puede 
 4. Export Model
 
 ### Creación de dataset
-
+Para configurar la creación del dataset de entrenamiento para el modelo neuronal es necesario especificar los parámetros en un archivo de configuración:
+```bash
+# data/config/dataset_config.yml
+    galaxyZoo2_path:  /data/images/gz2_hart16.csv
+    map_images_path:  /data/images/gz2_filename_mapping.csv
+    full_train_dataset_path: /data/images/gz2_train_dataset.csv
+    filtered_train_dataset_path: /data/images/gz2_filtered_train_dataset.csv
+    images_dir_path: /data/images/gz2_images/
+    th_score: 0.95
+    sample_size: 10000
+```
+Después simplemente ejecutar el script
+```
+python3 createDataSet
+```
 ### Reformating dataset
+```
+python3 build_galaxy_image_dataset.py \
+  --train_clean_csv_path=$MINIA/minIA/delf/data/GZ_dataset.csv \
+  --train_directory=$MINIA/images/images_filtrado/  \
+  --output_directory=$DELF_TRAIN/GZF_dataset/tfrecord/ \
+  --num_shards=32 \
+  --validation_split_size=0.2
+```
+*** Nota: para entrenar sobre cualquier otro dataset se requiere tener un
+formato igual al de 'GZ_dataset.csv' (respetar número de espacios y saltos de
+línea, el nombre de las imagenes se da sin formato y la extensión debe ser JPG)
+
+```
+Categoria_Encabezado,Nombre_encabezado
+Categoria_ID,nombre_imagen_1 nombre_imagen_2 ...
+Categoria_ID,nombre_imagen_2 nombre_imagen_5 ...
+```
+*** Nota: Una imagen puede pertenecer a distintas categorías
+*** Nota: Los nombres de los encabezados deben de coincidir con los discritos en el script
 
 ### Train
 
