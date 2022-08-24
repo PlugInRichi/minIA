@@ -1,7 +1,8 @@
 ## minIA installation
 
-### Dockerfile
-```
+### Dockerfile 
+```bash
+# From minIA/install/
 docker build -t minia .
 ```
 

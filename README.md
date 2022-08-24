@@ -29,9 +29,23 @@ pip install -r requirements.txt
 
 Adicionalmente será necesario instalar **Sampled-MinHashing**, para ello puede seguir las intrucciones descritas aquí: [https://github.com/gibranfp/Sampled-MinHashing]
 
-## Ejecución :joystick:
+# Ejecución :joystick:
 
-El proyecto es dividido en 4 secciones:
+## Entrenamiento del modelo especializado en detección de características
+1. Creación de dataset
+2. Reformating dataset
+3. Train
+4. Export Model
+
+### Creación de dataset
+
+### Reformating dataset
+
+### Train
+
+### Export Model
+
+## Descubrimiento de estructuras visuales
 1. [Extracción de características](#Extracción-de-características)
 2. [Clusterización](#Clusterización)
 3. [Minado de estructuras](#Minado-de-estructuras)
