@@ -7,6 +7,7 @@ mkdir -p "images/images_gz2"
 wget -O images_gz2.zip https://zenodo.org/record/3565489/files/images_gz2.zip?download=1
 unzip -q -j images_gz2.zip -d images/images_gz2
 rm images/images_gz2/._*
+find images/images_gz2/ -name "._*" -delete
 rm images_gz2.zip
 
 cd models
