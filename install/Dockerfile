@@ -30,3 +30,5 @@ RUN bash install_delf.sh
 
 COPY requirements.txt requirements.txt
 RUN pip install -r requirements.txt
+
+RUN git checkout 4b8f7d4
