@@ -14,3 +14,8 @@ cd models
 curl -Os http://storage.googleapis.com/delf/resnet50_imagenet_weights.tar.gz
 tar -xzvf resnet50_imagenet_weights.tar.gz
 rm resnet50_imagenet_weights.tar.gz
+
+cd ../images/
+wget -O gz2_filename_mapping.csv https://zenodo.org/record/3565489/files/gz2_filename_mapping.csv?download=1
+wget -O gz2_hart16.csv.gz https://gz2hart.s3.amazonaws.com/gz2_hart16.csv.gz
+gzip -d gz2_hart16.csv.gz
