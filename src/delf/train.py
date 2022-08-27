@@ -45,7 +45,7 @@ FLAGS = flags.FLAGS
 flags.DEFINE_boolean('debug', False, 'Debug mode.')
 flags.DEFINE_string('logdir', '/tmp/delf', 'WithTensorBoard logdir.')
 flags.DEFINE_string(
-    'train_file_pattern', '/tmp/data/train*',
+    'train_file_pattern', '/tmp/data/delf*',
     'File pattern of training dataset files.')
 flags.DEFINE_string(
     'validation_file_pattern', '/tmp/data/validation*',
@@ -72,7 +72,7 @@ flags.DEFINE_float(
     'Weight to apply to the attention loss when calculating the '
     'total loss of the model.')
 flags.DEFINE_boolean(
-    'delg_global_features', False, 'Whether to train a DELG model.')
+    'delg_global_features', False, 'Whether to delf a DELG model.')
 flags.DEFINE_float(
     'delg_gem_power', 3.0,
     'Power for Generalized Mean pooling. Used only if '
@@ -90,7 +90,7 @@ flags.DEFINE_float(
     'ArcFace margin. Used only if delg_global_features=True.')
 flags.DEFINE_integer('image_size', 321, 'Size of each image side to use.')
 flags.DEFINE_boolean(
-    'use_autoencoder', True, 'Whether to train an autoencoder.')
+    'use_autoencoder', True, 'Whether to delf an autoencoder.')
 flags.DEFINE_float(
     'reconstruction_loss_weight', 10.0,
     'Weight to apply to the reconstruction loss from the autoencoder when'
@@ -209,7 +209,7 @@ def main(argv):
   num_classes = 24
 
   # ------------------------------------------------------------
-  # Create the distributed train/validation sets.
+  # Create the distributed delf/validation sets.
   train_dataset = gld.CreateDataset(
       file_pattern=FLAGS.train_file_pattern,
       batch_size=global_batch_size,
@@ -365,7 +365,7 @@ def main(argv):
         tf.summary.scalar(
             'desc/scale_factor', model.scale_factor, step=global_step)
 
-      # Record train accuracies.
+      # Record delf accuracies.
       _record_accuracy(desc_train_accuracy, desc_logits, labels)
       _record_accuracy(attn_train_accuracy, attn_logits, labels)
 

@@ -19,10 +19,10 @@ The image data set is expected to reside in JPEG files ends up with '.jpg'.
 
 This script converts the training and testing data into
 a sharded data set consisting of TFRecord files
-  train_directory/train-00000-of-00128
-  train_directory/train-00001-of-00128
+  train_directory/delf-00000-of-00128
+  train_directory/delf-00001-of-00128
   ...
-  train_directory/train-00127-of-00128
+  train_directory/delf-00127-of-00128
 and
   test_directory/test-00000-of-00128
   test_directory/test-00001-of-00128
@@ -61,7 +61,7 @@ FLAGS = flags.FLAGS
 
 flags.DEFINE_string('train_directory', '/tmp/', 'Training data directory.')
 flags.DEFINE_string('output_directory', '/tmp/', 'Output data directory.')
-flags.DEFINE_string('train_clean_csv_path', '/tmp/train.csv',
+flags.DEFINE_string('train_clean_csv_path', '/tmp/delf.csv',
                     ('Clean training data csv file path. '
                      'If provided, filters images keeping the ones listed in '
                      'this file. In this case, also outputs a CSV file '
@@ -69,9 +69,9 @@ flags.DEFINE_string('train_clean_csv_path', '/tmp/train.csv',
 flags.DEFINE_integer('num_shards', 64, 'Number of shards in output data.')
 flags.DEFINE_float('validation_split_size', 0.2,
                    'The size of the VALIDATION split as a fraction'
-                   'of the train dataset.')
+                   'of the delf dataset.')
 flags.DEFINE_integer('seed', 0,
-                     '(Optional) The seed to be used while shuffling the train'
+                     '(Optional) The seed to be used while shuffling the delf'
                      'dataset when generating the TRAIN and VALIDATION splits.'
                      'Recommended for splits reproducibility purposes.')
 
@@ -79,7 +79,7 @@ _FILE_IDS_KEY = 'file_ids'
 _IMAGE_PATHS_KEY = 'image_paths'
 _LABELS_KEY = 'labels'
 _TEST_SPLIT = 'test'
-_TRAIN_SPLIT = 'train'
+_TRAIN_SPLIT = 'delf'
 _VALIDATION_SPLIT = 'validation'
 
 """
@@ -98,7 +98,7 @@ def _get_clean_train_image_files_and_labels(csv_path, image_dir):
 
   Args:
     csv_path: path to the Google-landmark Dataset v2 CSV Data Sources files
-              of the clean train dataset. Assumes CSV header landmark_id;images.
+              of the clean delf dataset. Assumes CSV header landmark_id;images.
     image_dir: directory that stores downloaded images.
 
   Returns:
@@ -147,11 +147,11 @@ def _get_clean_train_image_files_and_labels(csv_path, image_dir):
 
 
 def _write_relabeling_rules(relabeling_rules):
-  """Write to a file the relabeling rules when the clean train dataset is used.
+  """Write to a file the relabeling rules when the clean delf dataset is used.
 
   Args:
     relabeling_rules: dictionary of relabeling rules applied when the clean
-      train dataset is used (key = old_label, value = new_label).
+      delf dataset is used (key = old_label, value = new_label).
   """
   relabeling_file_name = os.path.join(FLAGS.output_directory,
                                       'relabeling.csv')
@@ -239,7 +239,7 @@ def _write_tfrecord(output_prefix, image_paths, file_ids, labels):
   """Read image files and write image and label data into TFRecord files.
 
   Args:
-    output_prefix: string, the prefix of output files, e.g. 'train'.
+    output_prefix: string, the prefix of output files, e.g. 'delf'.
     image_paths: list of strings, the paths to images to be converted.
     file_ids: list of strings, the image unique ids.
     labels: list of integers, the landmark ids of images. It is an empty list
@@ -275,10 +275,10 @@ def _build_train_and_validation_splits(image_paths, file_ids, labels,
   """Create TRAIN and VALIDATION splits containg all labels in equal proportion.
 
   Args:
-    image_paths: list of paths to the image files in the train dataset.
-    file_ids: list of image file ids in the train dataset.
-    labels: list of image labels in the train dataset.
-    validation_split_size: size of the VALIDATION split as a ratio of the train
+    image_paths: list of paths to the image files in the delf dataset.
+    file_ids: list of image file ids in the delf dataset.
+    labels: list of image labels in the delf dataset.
+    validation_split_size: size of the VALIDATION split as a ratio of the delf
       dataset.
     seed: seed to use for shuffling the dataset for reproducibility purposes.
 
@@ -293,7 +293,7 @@ def _build_train_and_validation_splits(image_paths, file_ids, labels,
   if not (len(image_paths) == total_images and len(labels) == total_images):
     raise ValueError('Inconsistencies between number of file_ids (%d), number '
                      'of image_paths (%d) and number of labels (%d). Cannot'
-                     'shuffle the train dataset.'% (total_images,
+                     'shuffle the delf dataset.'% (total_images,
                                                     len(image_paths),
                                                     len(labels)))
 
@@ -370,13 +370,13 @@ def _build_train_tfrecord_dataset(clean_csv_path,
                                   image_dir,
                                   validation_split_size,
                                   seed):
-  """Build a TFRecord dataset for the train split.
+  """Build a TFRecord dataset for the delf split.
 
   Args:
     clean_csv_path: path to the Google-landmark Dataset v2 CSV Data Sources
-                    files of the clean train dataset.
+                    files of the clean delf dataset.
     image_dir: directory that stores downloaded images.
-    validation_split_size: size of the VALIDATION split as a ratio of the train
+    validation_split_size: size of the VALIDATION split as a ratio of the delf
       dataset. Only used if 'generate_train_validation_splits' is True.
     seed: seed to use for shuffling the dataset for reproducibility purposes.
       Only used if 'generate_train_validation_splits' is True.
@@ -393,7 +393,7 @@ def _build_train_tfrecord_dataset(clean_csv_path,
       raise ValueError('Invalid VALIDATION split size. Expected inside (0,1)'
                       'but received %f.' % validation_split_size)
 
-  # Load clean train images and labels and write the relabeling rules.
+  # Load clean delf images and labels and write the relabeling rules.
   (image_paths, file_ids, labels,
     relabeling_rules) = _get_clean_train_image_files_and_labels(clean_csv_path,
                                                                 image_dir)
