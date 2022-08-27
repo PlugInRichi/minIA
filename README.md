@@ -45,21 +45,21 @@ Para configurar la creación del dataset de entrenamiento para el modelo neurona
     map_images_path:  /data/images/gz2_filename_mapping.csv
     full_train_dataset_path: /data/images/gz2_train_dataset.csv
     filtered_train_dataset_path: /data/images/gz2_filtered_train_dataset.csv
-    images_dir_path: /data/images/gz2_images/
+    images_dir_path: /data/images/images_gz2/
     th_score: 0.95
     sample_size: 10000
 ```
 Después simplemente ejecutar el script
 ```
-python3 createDataSet
+python3 createDataSet.py
 ```
 ### Reformating dataset
 ```
-python3 build_galaxy_image_dataset.py \
-  --train_clean_csv_path=$MINIA/minIA/delf/data/GZ_dataset.csv \
-  --train_directory=$MINIA/images/images_filtrado/  \
-  --output_directory=$DELF_TRAIN/GZF_dataset/tfrecord/ \
-  --num_shards=32 \
+python3 delf/build_galaxy_image_dataset.py \
+  --train_clean_csv_path=/data/images/gz2_filtered_train_dataset.csv \
+  --train_directory=/data/images/images_gz2/  \
+  --output_directory=/data/tf_records \
+  --num_shards=64 \
   --validation_split_size=0.2
 ```
 *** Nota: para entrenar sobre cualquier otro dataset se requiere tener un
@@ -75,6 +75,16 @@ Categoria_ID,nombre_imagen_2 nombre_imagen_5 ...
 *** Nota: Los nombres de los encabezados deben de coincidir con los discritos en el script
 
 ### Train
+```
+python3 delf/train.py \
+    --train_file_pattern=/data/tf_records/train* \
+    --validation_file_pattern=/data/tf_records/validation* \
+    --imagenet_checkpoint=/data/models/resnet50_weights_tf_dim_ordering_tf_kernels_notop.h5 \
+    --logdir=/data/models/red \
+    --max_iters=10000 \
+    --initial_lr=0.025 \
+    --batch_size=64
+```
 
 ### Export Model
 
