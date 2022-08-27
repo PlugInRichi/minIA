@@ -14,15 +14,13 @@
 # limitations under the License.
 # ==============================================================================
 """Converts landmark image data to TFRecords file format with Example protos.
-
 The image data set is expected to reside in JPEG files ends up with '.jpg'.
-
 This script converts the training and testing data into
 a sharded data set consisting of TFRecord files
-  train_directory/delf-00000-of-00128
-  train_directory/delf-00001-of-00128
+  train_directory/train-00000-of-00128
+  train_directory/train-00001-of-00128
   ...
-  train_directory/delf-00127-of-00128
+  train_directory/train-00127-of-00128
 and
   test_directory/test-00000-of-00128
   test_directory/test-00001-of-00128
@@ -61,7 +59,7 @@ FLAGS = flags.FLAGS
 
 flags.DEFINE_string('train_directory', '/tmp/', 'Training data directory.')
 flags.DEFINE_string('output_directory', '/tmp/', 'Output data directory.')
-flags.DEFINE_string('train_clean_csv_path', '/tmp/delf.csv',
+flags.DEFINE_string('train_clean_csv_path', '/tmp/train.csv',
                     ('Clean training data csv file path. '
                      'If provided, filters images keeping the ones listed in '
                      'this file. In this case, also outputs a CSV file '
@@ -69,9 +67,9 @@ flags.DEFINE_string('train_clean_csv_path', '/tmp/delf.csv',
 flags.DEFINE_integer('num_shards', 64, 'Number of shards in output data.')
 flags.DEFINE_float('validation_split_size', 0.2,
                    'The size of the VALIDATION split as a fraction'
-                   'of the delf dataset.')
+                   'of the train dataset.')
 flags.DEFINE_integer('seed', 0,
-                     '(Optional) The seed to be used while shuffling the delf'
+                     '(Optional) The seed to be used while shuffling the train'
                      'dataset when generating the TRAIN and VALIDATION splits.'
                      'Recommended for splits reproducibility purposes.')
 
@@ -79,7 +77,7 @@ _FILE_IDS_KEY = 'file_ids'
 _IMAGE_PATHS_KEY = 'image_paths'
 _LABELS_KEY = 'labels'
 _TEST_SPLIT = 'test'
-_TRAIN_SPLIT = 'delf'
+_TRAIN_SPLIT = 'train'
 _VALIDATION_SPLIT = 'validation'
 
 """
@@ -95,12 +93,10 @@ seed 180298
 
 def _get_clean_train_image_files_and_labels(csv_path, image_dir):
   """Get image file paths, image ids and  labels for the clean training split.
-
   Args:
     csv_path: path to the Google-landmark Dataset v2 CSV Data Sources files
-              of the clean delf dataset. Assumes CSV header landmark_id;images.
+              of the clean train dataset. Assumes CSV header landmark_id;images.
     image_dir: directory that stores downloaded images.
-
   Returns:
     image_paths: the paths to all images in the image_dir.
     file_ids: the unique ids of images.
@@ -134,7 +130,7 @@ def _get_clean_train_image_files_and_labels(csv_path, image_dir):
   file_ids = []
   labels = []
   for _, value in images.items():
-    image_paths.append(value['image_path'])
+    image_paths.append(value['image_path'])#MAL
     file_ids.append(value['file_id'])
     labels.append(value['label'])
 
@@ -147,11 +143,10 @@ def _get_clean_train_image_files_and_labels(csv_path, image_dir):
 
 
 def _write_relabeling_rules(relabeling_rules):
-  """Write to a file the relabeling rules when the clean delf dataset is used.
-
+  """Write to a file the relabeling rules when the clean train dataset is used.
   Args:
     relabeling_rules: dictionary of relabeling rules applied when the clean
-      delf dataset is used (key = old_label, value = new_label).
+      train dataset is used (key = old_label, value = new_label).
   """
   relabeling_file_name = os.path.join(FLAGS.output_directory,
                                       'relabeling.csv')
@@ -163,10 +158,8 @@ def _write_relabeling_rules(relabeling_rules):
 
 def _process_image(filename):
   """Process a single image file.
-
   Args:
     filename: string, path to an image file e.g., '/path/to/example.jpg'.
-
   Returns:
     image_buffer: string, JPEG encoding of RGB image.
     height: integer, image height in pixels.
@@ -206,14 +199,12 @@ def _bytes_feature(value):
 
 def _convert_to_example(file_id, image_buffer, height, width, label=None):
   """Build an Example proto for the given inputs.
-
   Args:
     file_id: string, unique id of an image file, e.g., '97c0a12e07ae8dd5'.
     image_buffer: string, JPEG encoding of RGB image.
     height: integer, image height in pixels.
     width: integer, image width in pixels.
     label: integer, the landmark id and prediction label.
-
   Returns:
     Example proto.
   """
@@ -237,14 +228,12 @@ def _convert_to_example(file_id, image_buffer, height, width, label=None):
 
 def _write_tfrecord(output_prefix, image_paths, file_ids, labels):
   """Read image files and write image and label data into TFRecord files.
-
   Args:
-    output_prefix: string, the prefix of output files, e.g. 'delf'.
+    output_prefix: string, the prefix of output files, e.g. 'train'.
     image_paths: list of strings, the paths to images to be converted.
     file_ids: list of strings, the image unique ids.
     labels: list of integers, the landmark ids of images. It is an empty list
       when output_prefix='test'.
-
   Raises:
     ValueError: if the length of input images, ids and labels don't match
   """
@@ -273,15 +262,13 @@ def _write_tfrecord(output_prefix, image_paths, file_ids, labels):
 def _build_train_and_validation_splits(image_paths, file_ids, labels,
                                        validation_split_size, seed):
   """Create TRAIN and VALIDATION splits containg all labels in equal proportion.
-
   Args:
-    image_paths: list of paths to the image files in the delf dataset.
-    file_ids: list of image file ids in the delf dataset.
-    labels: list of image labels in the delf dataset.
-    validation_split_size: size of the VALIDATION split as a ratio of the delf
+    image_paths: list of paths to the image files in the train dataset.
+    file_ids: list of image file ids in the train dataset.
+    labels: list of image labels in the train dataset.
+    validation_split_size: size of the VALIDATION split as a ratio of the train
       dataset.
     seed: seed to use for shuffling the dataset for reproducibility purposes.
-
   Returns:
     splits : tuple containing the TRAIN and VALIDATION splits.
   Raises:
@@ -293,7 +280,7 @@ def _build_train_and_validation_splits(image_paths, file_ids, labels,
   if not (len(image_paths) == total_images and len(labels) == total_images):
     raise ValueError('Inconsistencies between number of file_ids (%d), number '
                      'of image_paths (%d) and number of labels (%d). Cannot'
-                     'shuffle the delf dataset.'% (total_images,
+                     'shuffle the train dataset.'% (total_images,
                                                     len(image_paths),
                                                     len(labels)))
 
@@ -353,7 +340,6 @@ def _build_train_and_validation_splits(image_paths, file_ids, labels,
 
 def _shuffle_by_columns(np_array, random_state):
   """Shuffle the columns of a 2D numpy array.
-
   Args:
     np_array: array to shuffle.
     random_state: numpy RandomState to be used for shuffling.
@@ -370,13 +356,12 @@ def _build_train_tfrecord_dataset(clean_csv_path,
                                   image_dir,
                                   validation_split_size,
                                   seed):
-  """Build a TFRecord dataset for the delf split.
-
+  """Build a TFRecord dataset for the train split.
   Args:
     clean_csv_path: path to the Google-landmark Dataset v2 CSV Data Sources
-                    files of the clean delf dataset.
+                    files of the clean train dataset.
     image_dir: directory that stores downloaded images.
-    validation_split_size: size of the VALIDATION split as a ratio of the delf
+    validation_split_size: size of the VALIDATION split as a ratio of the train
       dataset. Only used if 'generate_train_validation_splits' is True.
     seed: seed to use for shuffling the dataset for reproducibility purposes.
       Only used if 'generate_train_validation_splits' is True.
@@ -393,7 +378,7 @@ def _build_train_tfrecord_dataset(clean_csv_path,
       raise ValueError('Invalid VALIDATION split size. Expected inside (0,1)'
                       'but received %f.' % validation_split_size)
 
-  # Load clean delf images and labels and write the relabeling rules.
+  # Load clean train images and labels and write the relabeling rules.
   (image_paths, file_ids, labels,
     relabeling_rules) = _get_clean_train_image_files_and_labels(clean_csv_path,
                                                                 image_dir)
@@ -417,7 +402,6 @@ def _build_train_tfrecord_dataset(clean_csv_path,
 
 
 def main(unused_argv):
-  print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
   _build_train_tfrecord_dataset(FLAGS.train_clean_csv_path,
                                 FLAGS.train_directory,
                                 FLAGS.validation_split_size,
