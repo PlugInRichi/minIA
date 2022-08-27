@@ -55,7 +55,7 @@ python3 createDataSet.py
 ```
 ### Reformating dataset
 ```
-python3 build_galaxy_image_dataset.py \
+python3 delf/build_galaxy_image_dataset.py \
   --train_clean_csv_path=/data/images/gz2_filtered_train_dataset.csv \
   --train_directory=/data/images/images_gz2/  \
   --output_directory=/data/tf_records \
@@ -75,6 +75,16 @@ Categoria_ID,nombre_imagen_2 nombre_imagen_5 ...
 *** Nota: Los nombres de los encabezados deben de coincidir con los discritos en el script
 
 ### Train
+```
+python3 delf/train.py \
+    --train_file_pattern=/data/tf_records/train* \
+    --validation_file_pattern=/data/tf_records/validation* \
+    --imagenet_checkpoint=/data/models/resnet50_weights_tf_dim_ordering_tf_kernels_notop.h5 \
+    --logdir=/data/models/red \
+    --max_iters=10000 \
+    --initial_lr=0.025 \
+    --batch_size=64
+```
 
 ### Export Model
 
