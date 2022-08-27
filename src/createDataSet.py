@@ -5,7 +5,7 @@ import cv2 as cv
 import yaml
 from tqdm import tqdm
 from minIA.imageProcessing import filter_image, change_position
-from minIA.constrains import SELECTED_TYPES, CLASS_NAMES, PRIOR_TYPES, GALAXY_TYPES
+from minIA.constrains import SELECTED_TYPES, PRIOR_TYPES, GALAXY_TYPES
 
 
 def create_dataframe(cfg_dataset):
@@ -41,7 +41,7 @@ def images_per_class(df_clean, threshold):
     Create a list of lists where every sublist is the names of the images assigned to that class
     """
     classes = {}
-    for galaxy_type in SELECTED_TYPES:
+    for galaxy_type in GALAXY_TYPES:
         classes[galaxy_type] = df_clean['asset_id'][df_clean[galaxy_type] > threshold].to_list()
     return classes
 
@@ -57,7 +57,8 @@ def create_training_file(full_path, filtered_path, images_class):
     with open(full_path, 'w') as full_dataset, open(filtered_path, 'w') as filtered_dataset:
         full_dataset.write('type_galaxy_id,images\n')
         filtered_dataset.write('type_galaxy_id,images\n')
-        for galaxy_type in SELECTED_TYPES:
+        for galaxy_type in GALAXY_TYPES:
+            print(galaxy_type)
             names = 'F' + ' F'.join(images_class[galaxy_type])
             filtered_dataset.write(str(g_index) + ',' + names + '\n')
             names = names + ' ' + ' '.join(images_class[galaxy_type])
