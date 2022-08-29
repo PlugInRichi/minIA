@@ -7,6 +7,7 @@ from tqdm import tqdm
 from minIA.imageProcessing import filter_image, change_position
 from minIA.constrains import SELECTED_TYPES, PRIOR_TYPES, GALAXY_TYPES, ALL_TYPES
 
+np.random.seed(5986)
 
 def create_dataframe(cfg_dataset):
     df_map = pd.read_csv(cfg_dataset['map_images_path'])
@@ -82,10 +83,20 @@ def images_per_class(df_clean, threshold):
     return classes
 
 
-def downsampling(classes):
-    for i in range(len(classes)):
-        if len(classes[i]) > 10000:
-            classes[i] = np.random.choice(classes[i], 10000, replace=False)
+def down_sampling(galaxy_types):
+    used_images = set()
+    estimated_images = 0 #Use for find overlapping
+    for galaxy_type in GALAXY_TYPES:
+        if len(galaxy_types[galaxy_type]) > 2000:
+            galaxy_types[galaxy_type] = list(np.random.choice(galaxy_types[galaxy_type], 2000, replace=False))
+        else:
+            galaxy_types[galaxy_type] = galaxy_types[galaxy_type].to_list()
+        used_images |= set(galaxy_types[galaxy_type])
+        estimated_images += len(galaxy_types[galaxy_type])
+        print('Found ' + str(len(galaxy_types[galaxy_type])) + ' images for ' + galaxy_type + ' class')
+    print('Total of images used for training: ', len(used_images),' estimated: ', estimated_images)
+    return used_images
+
 
 
 def create_training_file(full_path, filtered_path, galaxy_types):
@@ -95,9 +106,9 @@ def create_training_file(full_path, filtered_path, galaxy_types):
         filtered_dataset.write('type_galaxy_id,images\n')
         for galaxy_type in GALAXY_TYPES:
             print(galaxy_type)
-            names = 'F' + ' F'.join(galaxy_types[galaxy_type].to_list())
+            names = 'F' + ' F'.join(galaxy_types[galaxy_type])
             filtered_dataset.write(str(g_index) + ',' + names + '\n')
-            names = names + ' ' + ' '.join(galaxy_types[galaxy_type].to_list())
+            names = names + ' ' + ' '.join(galaxy_types[galaxy_type])
             full_dataset.write(str(g_index) + ',' + names + '\n')
             g_index += 1
 
@@ -131,17 +142,19 @@ def main():
     print('Applying mask to prioritize underrepresented classes...')
     #mask = create_mask(df_clean, cfg_dataset['th_score'])
     #df_clean = df_clean[mask]
+
     print('Total of samples: ', len(df_clean))
-    if 'sample_size' in cfg_dataset:
-        print('Using a sample of size ', cfg_dataset['sample_size'])
-        df_clean = df_clean.sample(cfg_dataset['sample_size'], random_state=6564)
+    #if 'sample_size' in cfg_dataset:
+    #    print('Using a sample of size ', cfg_dataset['sample_size'])
+    #    df_clean = df_clean.sample(cfg_dataset['sample_size'], random_state=6564)
 
     print('Making some groups... ')
     #galaxy_groups = images_per_class(df_clean, cfg_dataset['th_score'])
     galaxy_groups = assign_class(df_clean)
+    used_images = down_sampling(galaxy_groups)
 
     print('Creando imágenes filtradas... ')
-    images = df_clean['asset_id'].to_list()
+    images = list(used_images)
     in_image_dir = create_image_dataset(images, cfg_dataset['images_dir_path']) #faltaron 3?
 
     print('Exportando archivo de entrenamiento... ')
