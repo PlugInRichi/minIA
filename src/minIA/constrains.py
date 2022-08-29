@@ -108,12 +108,42 @@ PRIOR_TYPES = [
 ]
 
 GALAXY_TYPES = [
+    'ring',
+    'lens_or_arc',
+    'disturbed',
+    'irregular',
+    'merger',
+    'dust_lane',
+    'rounded',
+    'boxy',
+    'no_bulge',
+    'no_central_bulge',
+    'dominant',
+    'tight',
+    'medium',
+    'loose',
+    'completely_round',
+    'in_between',
+    'cigar_shaped'
+]
+
+ALL_TYPES = [
+    'objid',
     't01_smooth_or_features_a01_smooth_debiased',
     't01_smooth_or_features_a02_features_or_disk_debiased',
+    't01_smooth_or_features_a03_star_or_artifact_debiased',
+    't02_edgeon_a04_yes_debiased',
+    't02_edgeon_a05_no_debiased',
+    't03_bar_a06_bar_debiased',
+    't03_bar_a07_no_bar_debiased',
+    't04_spiral_a08_spiral_debiased',
+    't04_spiral_a09_no_spiral_debiased',
     't05_bulge_prominence_a10_no_bulge_debiased',
     't05_bulge_prominence_a11_just_noticeable_debiased',
     't05_bulge_prominence_a12_obvious_debiased',
     't05_bulge_prominence_a13_dominant_debiased',
+    't06_odd_a14_yes_debiased',
+    't06_odd_a15_no_debiased',
     't07_rounded_a16_completely_round_debiased',
     't07_rounded_a17_in_between_debiased',
     't07_rounded_a18_cigar_shaped_debiased',
@@ -121,6 +151,7 @@ GALAXY_TYPES = [
     't08_odd_feature_a20_lens_or_arc_debiased',
     't08_odd_feature_a21_disturbed_debiased',
     't08_odd_feature_a22_irregular_debiased',
+    't08_odd_feature_a23_other_debiased',
     't08_odd_feature_a24_merger_debiased',
     't08_odd_feature_a38_dust_lane_debiased',
     't09_bulge_shape_a25_rounded_debiased',
@@ -132,5 +163,7 @@ GALAXY_TYPES = [
     't11_arms_number_a31_1_debiased',
     't11_arms_number_a32_2_debiased',
     't11_arms_number_a33_3_debiased',
-    't11_arms_number_a34_4_debiased'
+    't11_arms_number_a34_4_debiased',
+    't11_arms_number_a36_more_than_4_debiased',
+    't11_arms_number_a37_cant_tell_debiased'
 ]

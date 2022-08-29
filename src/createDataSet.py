@@ -5,13 +5,13 @@ import cv2 as cv
 import yaml
 from tqdm import tqdm
 from minIA.imageProcessing import filter_image, change_position
-from minIA.constrains import SELECTED_TYPES, PRIOR_TYPES, GALAXY_TYPES
+from minIA.constrains import SELECTED_TYPES, PRIOR_TYPES, GALAXY_TYPES, ALL_TYPES
 
 
 def create_dataframe(cfg_dataset):
     df_map = pd.read_csv(cfg_dataset['map_images_path'])
     df_selected = pd.read_csv(cfg_dataset['galaxyZoo2_path']).rename(columns={'dr7objid': 'objid'})
-    df_selected = df_selected[SELECTED_TYPES]
+    df_selected = df_selected[ALL_TYPES]
     df_match = df_map.merge(df_selected, on='objid', how='inner')
     df_match['asset_id'] = df_match['asset_id'].astype('string')
     return df_match
@@ -26,6 +26,42 @@ def delete_not_found(images_path, df_clean):
     indexes = df_clean['asset_id'].isin(map_diff)
     return df_clean.loc[indexes]
 
+def assign_class(df, threshold=0.80):
+    """return SET OF DATAFRAMES"""
+    galaxy_types = {}
+    #Pink
+    odd_yes = df['t06_odd_a14_yes_debiased'] > 0.9
+    galaxy_types['ring'] = df['asset_id'][odd_yes & df['t08_odd_feature_a19_ring_debiased'] > threshold]
+    galaxy_types['lens_or_arc'] = df['asset_id'][odd_yes & df['t08_odd_feature_a20_lens_or_arc_debiased'] > threshold]
+    galaxy_types['disturbed'] = df['asset_id'][odd_yes & df['t08_odd_feature_a21_disturbed_debiased'] > threshold]
+    galaxy_types['irregular'] = df['asset_id'][odd_yes & df['t08_odd_feature_a22_irregular_debiased'] > threshold]
+    galaxy_types['merger'] = df['asset_id'][odd_yes & df['t08_odd_feature_a24_merger_debiased'] > threshold]
+    galaxy_types['dust_lane'] = df['asset_id'][odd_yes & df['t08_odd_feature_a38_dust_lane_debiased'] > threshold]
+
+    #Red
+    odd_no =df['t06_odd_a15_no_debiased']> 0.9
+    galaxy_types['rounded'] = df['asset_id'][odd_no & df['t09_bulge_shape_a25_rounded_debiased'] > 0.90]
+    galaxy_types['boxy'] = df['asset_id'][odd_no & df['t09_bulge_shape_a26_boxy_debiased'] > 0.90]
+    galaxy_types['no_bulge'] = df['asset_id'][odd_no & df['t09_bulge_shape_a27_no_bulge_debiased'] > 0.90]
+
+    #Orange
+    no_spiral = odd_no & df['t04_spiral_a09_no_spiral_debiased'] > 0.9
+    galaxy_types['no_central_bulge'] = df['asset_id'][no_spiral &
+                                                      df['t05_bulge_prominence_a10_no_bulge_debiased'] > threshold]
+    galaxy_types['dominant'] = df['asset_id'][no_spiral & df['t05_bulge_prominence_a13_dominant_debiased'] > threshold]
+
+    #Green
+    spiral_yes = odd_no & df['t04_spiral_a08_spiral_debiased'] > 0.9
+    galaxy_types['tight'] = df['asset_id'][spiral_yes & df['t10_arms_winding_a28_tight_debiased'] > threshold]
+    galaxy_types['medium'] = df['asset_id'][spiral_yes & df['t10_arms_winding_a29_medium_debiased'] > threshold]
+    galaxy_types['loose'] = df['asset_id'][spiral_yes & df['t10_arms_winding_a30_loose_debiased'] > threshold]
+
+    #Yellow
+    galaxy_types['completely_round'] = df['asset_id'][odd_no &
+                                                      df['t07_rounded_a16_completely_round_debiased'] > 0.95]
+    galaxy_types['in_between'] = df['asset_id'][odd_no & df['t07_rounded_a17_in_between_debiased'] > 0.95]
+    galaxy_types['cigar_shaped'] = df['asset_id'][odd_no & df['t07_rounded_a18_cigar_shaped_debiased'] > 0.95]
+    return galaxy_types
 
 def create_mask(dataframe, threshold):
     mask = None
@@ -52,16 +88,16 @@ def downsampling(classes):
             classes[i] = np.random.choice(classes[i], 10000, replace=False)
 
 
-def create_training_file(full_path, filtered_path, images_class):
+def create_training_file(full_path, filtered_path, galaxy_types):
     g_index = 0
     with open(full_path, 'w') as full_dataset, open(filtered_path, 'w') as filtered_dataset:
         full_dataset.write('type_galaxy_id,images\n')
         filtered_dataset.write('type_galaxy_id,images\n')
         for galaxy_type in GALAXY_TYPES:
             print(galaxy_type)
-            names = 'F' + ' F'.join(images_class[galaxy_type])
+            names = 'F' + ' F'.join(galaxy_types[galaxy_type].to_list())
             filtered_dataset.write(str(g_index) + ',' + names + '\n')
-            names = names + ' ' + ' '.join(images_class[galaxy_type])
+            names = names + ' ' + ' '.join(galaxy_types[galaxy_type].to_list())
             full_dataset.write(str(g_index) + ',' + names + '\n')
             g_index += 1
 
@@ -93,15 +129,16 @@ def main():
     df_clean = delete_not_found(cfg_dataset['images_dir_path'], df_clean)
 
     print('Applying mask to prioritize underrepresented classes...')
-    mask = create_mask(df_clean, cfg_dataset['th_score'])
-    df_clean = df_clean[mask]
-    print('Total of calculated samples: ', len(df_clean))
+    #mask = create_mask(df_clean, cfg_dataset['th_score'])
+    #df_clean = df_clean[mask]
+    print('Total of samples: ', len(df_clean))
     if 'sample_size' in cfg_dataset:
         print('Using a sample of size ', cfg_dataset['sample_size'])
         df_clean = df_clean.sample(cfg_dataset['sample_size'], random_state=6564)
 
     print('Making some groups... ')
-    galaxy_groups = images_per_class(df_clean, cfg_dataset['th_score'])
+    #galaxy_groups = images_per_class(df_clean, cfg_dataset['th_score'])
+    galaxy_groups = assign_class(df_clean)
 
     print('Creando imágenes filtradas... ')
     images = df_clean['asset_id'].to_list()
