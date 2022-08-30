@@ -88,6 +88,11 @@ python3 delf/train.py \
 
 ### Export Model
 
+python3 delf/export_local_model.py \
+  --ckpt_path=/data/models/red/delf_weights \
+  --export_path=/data/models/red_model
+
+
 ## Descubrimiento de estructuras visuales
 1. [Extracción de características](#Extracción-de-características)
 2. [Clusterización](#Clusterización)
