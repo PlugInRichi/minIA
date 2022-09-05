@@ -193,7 +193,7 @@ def main(argv):
   max_iters = FLAGS.max_iters
   global_batch_size = FLAGS.batch_size
   image_size = FLAGS.image_size
-  num_eval_batches = int(50000 / global_batch_size)
+  num_eval_batches = int(10000 / global_batch_size)
   report_interval = 100
   eval_interval = 1000
   save_interval = 1000
