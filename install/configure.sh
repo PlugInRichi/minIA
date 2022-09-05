@@ -2,6 +2,7 @@
 cd data
 mkdir "tf_records"
 mkdir "models"
+mkdir train
 mkdir -p "images/images_gz2"
 
 wget -O images_gz2.zip https://zenodo.org/record/3565489/files/images_gz2.zip?download=1
