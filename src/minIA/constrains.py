@@ -109,13 +109,13 @@ PRIOR_TYPES = [
 
 GALAXY_TYPES = [
     'ring',
-    'lens_or_arc',
-    'disturbed',
+    #'lens_or_arc',
+    #'disturbed',
     'irregular',
     'merger',
-    'dust_lane',
+    #'dust_lane',
     'rounded',
-    'boxy',
+    #'boxy',
     'no_bulge',
     'no_central_bulge',
     'dominant',
@@ -124,7 +124,8 @@ GALAXY_TYPES = [
     'loose',
     'completely_round',
     'in_between',
-    'cigar_shaped'
+    'cigar_shaped',
+    'bar'
 ]
 
 ALL_TYPES = [

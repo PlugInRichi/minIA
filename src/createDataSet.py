@@ -27,42 +27,64 @@ def delete_not_found(images_path, df_clean):
     indexes = df_clean['asset_id'].isin(map_diff)
     return df_clean.loc[indexes]
 
-def assign_class(df, threshold=0.80):
+def assign_class(df, threshold=0.70):
     """return SET OF DATAFRAMES"""
     galaxy_types = {}
     #Pink
-    odd_yes = df['t06_odd_a14_yes_debiased'] > 0.9
-    galaxy_types['ring'] = df['asset_id'][odd_yes & df['t08_odd_feature_a19_ring_debiased'] > threshold]
-    galaxy_types['lens_or_arc'] = df['asset_id'][odd_yes & df['t08_odd_feature_a20_lens_or_arc_debiased'] > threshold]
-    galaxy_types['disturbed'] = df['asset_id'][odd_yes & df['t08_odd_feature_a21_disturbed_debiased'] > threshold]
-    galaxy_types['irregular'] = df['asset_id'][odd_yes & df['t08_odd_feature_a22_irregular_debiased'] > threshold]
-    galaxy_types['merger'] = df['asset_id'][odd_yes & df['t08_odd_feature_a24_merger_debiased'] > threshold]
-    galaxy_types['dust_lane'] = df['asset_id'][odd_yes & df['t08_odd_feature_a38_dust_lane_debiased'] > threshold]
+    odd_yes = df['t06_odd_a14_yes_debiased'] > 0.70
+    galaxy_types['ring'] = df['asset_id'][odd_yes & (df['t08_odd_feature_a19_ring_debiased'] > threshold)]
+    #galaxy_types['lens_or_arc'] = df['asset_id'][odd_yes & (df['t08_odd_feature_a20_lens_or_arc_debiased'] > threshold)]
+    #galaxy_types['disturbed'] = df['asset_id'][odd_yes & (df['t08_odd_feature_a21_disturbed_debiased'] > threshold)]
+    galaxy_types['irregular'] = df['asset_id'][odd_yes & (df['t08_odd_feature_a22_irregular_debiased'] > threshold)]
+    galaxy_types['merger'] = df['asset_id'][odd_yes & (df['t08_odd_feature_a24_merger_debiased'] > threshold)]
+    #galaxy_types['dust_lane'] = df['asset_id'][odd_yes & (df['t08_odd_feature_a38_dust_lane_debiased'] > threshold)]
 
     #Red
-    odd_no =df['t06_odd_a15_no_debiased']> 0.9
-    galaxy_types['rounded'] = df['asset_id'][odd_no & df['t09_bulge_shape_a25_rounded_debiased'] > 0.90]
-    galaxy_types['boxy'] = df['asset_id'][odd_no & df['t09_bulge_shape_a26_boxy_debiased'] > 0.90]
-    galaxy_types['no_bulge'] = df['asset_id'][odd_no & df['t09_bulge_shape_a27_no_bulge_debiased'] > 0.90]
+    odd_no = df['t06_odd_a15_no_debiased']> 0.85
+    edgeon_yes = df['t02_edgeon_a04_yes_debiased'] > 0.85
+
+    galaxy_types['rounded'] = df['asset_id'][odd_no & edgeon_yes & (df['t09_bulge_shape_a25_rounded_debiased'] > 0.90)]
+    #galaxy_types['boxy'] = df['asset_id'][odd_no & edgeon_yes & (df['t09_bulge_shape_a26_boxy_debiased'] > 0.70)]
+    galaxy_types['no_bulge'] = df['asset_id'][odd_no & edgeon_yes & (df['t09_bulge_shape_a27_no_bulge_debiased'] > 0.90)]
 
     #Orange
-    no_spiral = odd_no & df['t04_spiral_a09_no_spiral_debiased'] > 0.9
+    edgeon_no = df['t02_edgeon_a05_no_debiased'] > 0.85
+    no_spiral = odd_no & edgeon_no &(df['t04_spiral_a09_no_spiral_debiased'] > 0.85)
     galaxy_types['no_central_bulge'] = df['asset_id'][no_spiral &
-                                                      df['t05_bulge_prominence_a10_no_bulge_debiased'] > threshold]
-    galaxy_types['dominant'] = df['asset_id'][no_spiral & df['t05_bulge_prominence_a13_dominant_debiased'] > threshold]
+                                                      (df['t05_bulge_prominence_a10_no_bulge_debiased'] > threshold)]
+    galaxy_types['dominant'] = df['asset_id'][no_spiral & (df['t05_bulge_prominence_a13_dominant_debiased'] > threshold)]
 
     #Green
-    spiral_yes = odd_no & df['t04_spiral_a08_spiral_debiased'] > 0.9
-    galaxy_types['tight'] = df['asset_id'][spiral_yes & df['t10_arms_winding_a28_tight_debiased'] > threshold]
-    galaxy_types['medium'] = df['asset_id'][spiral_yes & df['t10_arms_winding_a29_medium_debiased'] > threshold]
-    galaxy_types['loose'] = df['asset_id'][spiral_yes & df['t10_arms_winding_a30_loose_debiased'] > threshold]
+    spiral_yes = odd_no & edgeon_no & (df['t04_spiral_a08_spiral_debiased'] > 0.85)
+    galaxy_types['tight'] = df['asset_id'][spiral_yes & (df['t10_arms_winding_a28_tight_debiased'] > threshold)]
+    galaxy_types['medium'] = df['asset_id'][spiral_yes & (df['t10_arms_winding_a29_medium_debiased'] > threshold)]
+    galaxy_types['loose'] = df['asset_id'][spiral_yes & (df['t10_arms_winding_a30_loose_debiased'] > threshold)]
 
     #Yellow
-    galaxy_types['completely_round'] = df['asset_id'][odd_no &
-                                                      df['t07_rounded_a16_completely_round_debiased'] > 0.95]
-    galaxy_types['in_between'] = df['asset_id'][odd_no & df['t07_rounded_a17_in_between_debiased'] > 0.95]
-    galaxy_types['cigar_shaped'] = df['asset_id'][odd_no & df['t07_rounded_a18_cigar_shaped_debiased'] > 0.95]
+    smooth = odd_no & (df['t01_smooth_or_features_a01_smooth_debiased'] > 0.85)
+    galaxy_types['completely_round'] = df['asset_id'][smooth &
+                                                      (df['t07_rounded_a16_completely_round_debiased'] > 0.90)]
+    galaxy_types['in_between'] = df['asset_id'][smooth & (df['t07_rounded_a17_in_between_debiased'] > 0.90)]
+    galaxy_types['cigar_shaped'] = df['asset_id'][smooth & (df['t07_rounded_a18_cigar_shaped_debiased'] > 0.90)]
+
+    #black
+    bar = edgeon_no & (df['t03_bar_a06_bar_debiased'] > 0.85) & (df['t01_smooth_or_features_a02_features_or_disk_debiased'] > 0.85)
+    galaxy_types['bar'] = df['asset_id'][bar]
     return galaxy_types
+
+
+def overlapping (dic_galaxy):
+    dic_galaxy_c = dic_galaxy.copy()
+    for key, value in dic_galaxy.items():
+        for key_2, value_2 in dic_galaxy_c.items():
+            op = len(set(value) & set(value_2))
+            if op != 0:
+                print('Overlapping between ', key,' and ', key_2,' is ', op)
+        dic_galaxy_c.pop(key)
+
+
+
+
 
 def create_mask(dataframe, threshold):
     mask = None
@@ -87,8 +109,8 @@ def down_sampling(galaxy_types):
     used_images = set()
     estimated_images = 0 #Use for find overlapping
     for galaxy_type in GALAXY_TYPES:
-        if len(galaxy_types[galaxy_type]) > 2000:
-            galaxy_types[galaxy_type] = list(np.random.choice(galaxy_types[galaxy_type], 2000, replace=False))
+        if len(galaxy_types[galaxy_type]) > 5000:
+            galaxy_types[galaxy_type] = list(np.random.choice(galaxy_types[galaxy_type], 5000, replace=False))
         else:
             galaxy_types[galaxy_type] = galaxy_types[galaxy_type].to_list()
         used_images |= set(galaxy_types[galaxy_type])
@@ -133,6 +155,7 @@ def main():
     with open("../data/config/dataset_config.yml", "r") as config_file:
         cfg_dataset = yaml.safe_load(config_file)
 
+
     print('Creating Dataframe... ')
     df_clean = create_dataframe(cfg_dataset)
 
@@ -151,6 +174,7 @@ def main():
     print('Making some groups... ')
     #galaxy_groups = images_per_class(df_clean, cfg_dataset['th_score'])
     galaxy_groups = assign_class(df_clean)
+    overlapping(galaxy_groups)
     used_images = down_sampling(galaxy_groups)
 
     print('Creando imágenes filtradas... ')
