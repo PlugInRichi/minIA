@@ -87,10 +87,11 @@ python3 delf/train.py \
 ```
 
 ### Export Model
-
+```bash
 python3 delf/export_local_model.py \
   --ckpt_path=/data/train/v1-0/delf_weights \
   --export_path=/data/models/v1-0
+```
 
 ## Descubrimiento de estructuras visuales
 1. [Extracción de características](#Extracción-de-características)
