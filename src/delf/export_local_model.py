@@ -30,7 +30,7 @@ from absl import flags
 import tensorflow as tf
 
 from delf.python.training.model import delf_model
-from src.delf.utils import export_model_utils
+from utils import export_model_utils
 
 FLAGS = flags.FLAGS
 
