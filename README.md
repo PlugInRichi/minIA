@@ -58,8 +58,8 @@ python3 createDataSet.py
 python3 delf/build_galaxy_image_dataset.py \
   --train_clean_csv_path=/data/images/gz2_filtered_train_dataset.csv \
   --train_directory=/data/images/images_gz2/  \
-  --output_directory=/data/tf_records \
-  --num_shards=64 \
+  --output_directory=/data/tf_records/v1-0 \
+  --num_shards=32 \
   --validation_split_size=0.2
 ```
 *** Nota: para entrenar sobre cualquier otro dataset se requiere tener un
@@ -77,21 +77,20 @@ Categoria_ID,nombre_imagen_2 nombre_imagen_5 ...
 ### Train
 ```
 python3 delf/train.py \
-    --train_file_pattern=/data/tf_records/train* \
-    --validation_file_pattern=/data/tf_records/validation* \
+    --train_file_pattern=/data/tf_records/v1-0/train* \
+    --validation_file_pattern=/data/tf_records/v1-0/validation* \
     --imagenet_checkpoint=/data/models/resnet50_weights_tf_dim_ordering_tf_kernels_notop.h5 \
-    --logdir=/data/models/red \
+    --logdir=/data/train/v1-0 \
     --max_iters=10000 \
     --initial_lr=0.025 \
-    --batch_size=64
+    --batch_size=32
 ```
 
 ### Export Model
 
 python3 delf/export_local_model.py \
-  --ckpt_path=/data/models/red/delf_weights \
-  --export_path=/data/models/red_model
-
+  --ckpt_path=/data/train/v1-0/delf_weights \
+  --export_path=/data/models/v1-0
 
 ## Descubrimiento de estructuras visuales
 1. [Extracción de características](#Extracción-de-características)
