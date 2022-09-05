@@ -24,6 +24,7 @@ from __future__ import division
 from __future__ import print_function
 
 import os
+import time
 
 from absl import app
 from absl import flags
@@ -45,7 +46,7 @@ FLAGS = flags.FLAGS
 flags.DEFINE_boolean('debug', False, 'Debug mode.')
 flags.DEFINE_string('logdir', '/tmp/delf', 'WithTensorBoard logdir.')
 flags.DEFINE_string(
-    'train_file_pattern', '/tmp/data/delf*',
+    'train_file_pattern', '/tmp/data/train*',
     'File pattern of training dataset files.')
 flags.DEFINE_string(
     'validation_file_pattern', '/tmp/data/validation*',
@@ -64,15 +65,12 @@ flags.DEFINE_boolean(
 flags.DEFINE_string(
     'imagenet_checkpoint', None,
     'ImageNet checkpoint for ResNet backbone. If None, no checkpoint is used.')
-flags.DEFINE_string(
-    'galaxy_checkpoint', None,
-    'Local galaxy checkpoint. If None, no checkpoint is used.')
 flags.DEFINE_float(
     'attention_loss_weight', 1.0,
     'Weight to apply to the attention loss when calculating the '
     'total loss of the model.')
 flags.DEFINE_boolean(
-    'delg_global_features', False, 'Whether to delf a DELG model.')
+    'delg_global_features', False, 'Whether to train a DELG model.')
 flags.DEFINE_float(
     'delg_gem_power', 3.0,
     'Power for Generalized Mean pooling. Used only if '
@@ -90,7 +88,7 @@ flags.DEFINE_float(
     'ArcFace margin. Used only if delg_global_features=True.')
 flags.DEFINE_integer('image_size', 321, 'Size of each image side to use.')
 flags.DEFINE_boolean(
-    'use_autoencoder', True, 'Whether to delf an autoencoder.')
+    'use_autoencoder', True, 'Whether to train an autoencoder.')
 flags.DEFINE_float(
     'reconstruction_loss_weight', 10.0,
     'Weight to apply to the reconstruction loss from the autoencoder when'
@@ -189,27 +187,36 @@ def main(argv):
   # Create the strategy.
   strategy = tf.distribute.MirroredStrategy()
   logging.info('Number of devices: %d', strategy.num_replicas_in_sync)
+  if FLAGS.debug:
+    print('Number of devices:', strategy.num_replicas_in_sync)
 
   max_iters = FLAGS.max_iters
   global_batch_size = FLAGS.batch_size
   image_size = FLAGS.image_size
   num_eval_batches = int(50000 / global_batch_size)
   report_interval = 100
-  eval_interval = 5000
-  save_interval = 5000
+  eval_interval = 1000
+  save_interval = 1000
 
   initial_lr = FLAGS.initial_lr
 
   clip_val = tf.constant(10.0)
 
+  if FLAGS.debug:
+    tf.config.run_functions_eagerly(True)
+    global_batch_size = 4
+    max_iters = 100
+    num_eval_batches = 1
+    save_interval = 1
+    report_interval = 10
 
   # Determine the number of classes based on the version of the dataset.
   #gld_info = gld.GoogleLandmarksInfo()
   #num_classes = gld_info.num_classes[FLAGS.dataset_version]
-  num_classes = 24
+  num_classes = 14
 
   # ------------------------------------------------------------
-  # Create the distributed delf/validation sets.
+  # Create the distributed train/validation sets.
   train_dataset = gld.CreateDataset(
       file_pattern=FLAGS.train_file_pattern,
       batch_size=global_batch_size,
@@ -262,11 +269,6 @@ def main(argv):
     # ------------------------------------------------------------
     # Setup DELF model and optimizer.
     model = create_model(num_classes)
-    if FLAGS.galaxy_checkpoint is not None:
-      logging.info('Attempting to load local pretrained weights.')
-      model.built = True
-      model.load_weights(FLAGS.galaxy_checkpoint)
-      logging.info('Done .')
     logging.info('Model, datasets loaded.\nnum_classes= %d', num_classes)
 
     optimizer = tf.keras.optimizers.SGD(learning_rate=initial_lr, momentum=0.9)
@@ -365,7 +367,7 @@ def main(argv):
         tf.summary.scalar(
             'desc/scale_factor', model.scale_factor, step=global_step)
 
-      # Record delf accuracies.
+      # Record train accuracies.
       _record_accuracy(desc_train_accuracy, desc_logits, labels)
       _record_accuracy(attn_train_accuracy, attn_logits, labels)
 
@@ -443,14 +445,13 @@ def main(argv):
           _, _, _ = distributed_train_step(input_batch)
           model.backbone.restore_weights(FLAGS.imagenet_checkpoint)
           logging.info('Done.')
-        elif FLAGS.galaxy_checkpoint is not None:
-          logging.info('Attempting to load local pretrained weights.')
-          model.built = True
-          model.load_weights(FLAGS.galaxy_checkpoint)
-          logging.info('Done.')
         else:
-          logging.info('Skip loading pretrained weights.')
+          logging.info('Skip loading ImageNet pretrained weights.')
+        if FLAGS.debug:
+          model.backbone.log_weights()
 
+        last_summary_step_value = None
+        last_summary_time = None
         while global_step_value < max_iters:
           # input_batch : images(b, h, w, c), labels(b,).
           try:
@@ -491,6 +492,22 @@ def main(argv):
               attn_train_accuracy.result(),
               step=global_step)
 
+          # Summary for number of global steps taken per second.
+          current_time = time.time()
+          if (last_summary_step_value is not None and
+              last_summary_time is not None):
+            tf.summary.scalar(
+                'global_steps_per_sec',
+                (global_step_value - last_summary_step_value) /
+                (current_time - last_summary_time),
+                step=global_step)
+
+          # Print to console if running locally.
+          if FLAGS.debug:
+            if global_step_value % report_interval == 0:
+              print(global_step.numpy())
+              print('desc:', desc_dist_loss.numpy())
+              print('attn:', attn_dist_loss.numpy())
 
           # Validate once in {eval_interval*n, n \in N} steps.
           if global_step_value % eval_interval == 0:
@@ -512,6 +529,10 @@ def main(argv):
             logging.info('\nValidation(%f)\n', global_step_value)
             logging.info(': desc: %f\n', desc_validation_result.numpy())
             logging.info(': attn: %f\n', attn_validation_result.numpy())
+            # Print to console.
+            if FLAGS.debug:
+              print('Validation: desc:', desc_validation_result.numpy())
+              print('          : attn:', attn_validation_result.numpy())
 
           # Save checkpoint once (each save_interval*n, n \in N) steps, or if
           # this is the last iteration.
