@@ -107,8 +107,9 @@ El script encargado de extraer los descriptores es _extractor.py_ para su ejecuc
 3. Ruta Absoluta o Relativa del archivo a generar
 
 La siguiente ejecución creará un archivo Pickle con el nombre _images_descriptors_
-> extractor.py SIFT /images_dataset /test/images_descriptors
-
+```bash
+extractor.py SIFT /images_dataset /test/images_descriptors
+```
 
 ### Clusterización
 El proceso de minado requiere de un vocabulario, utilizando los descriptores generados del paso anterior se realiza un clusterizado con la finalidad de estandarizar nuestro vocabulario, al final de este proceso se obtendrá un nuevo archivo que contendrá los un índice que representa el cluster al que fue asociado cada descriptor. 
@@ -119,8 +120,9 @@ El script encargado de extraer los descriptores es cluster.py_ para su ejecució
 3. Número de cluster (tamaño de vocabulario final)
 
 La siguiente ejecución creará un archivo Pickle con el nombre _images_clusters_ utilizando 2000 clusters
-> cluster.py /test/images_descriptors /test/images_clusters 2000
-
+```bash
+cluster.py /test/images_descriptors /test/images_clusters 2000
+```
 ### Minado de estructuras 
 Utilizando el archivo generado de la clusterización y el generado de la extracción se crea el doumento de entrada para SHM.
 
@@ -130,8 +132,9 @@ Utilizando el archivo generado de la clusterización y el generado de la extracc
 4. Ruta Absoluta o Relativa del documento a generar
 
 La siguiente ejecución creará un documento con el nombre _clusters_per_images_ midiendo el tamaño con el que aparecen dentro de la imagen
-> SMHdocument.py SIZE /test/images_descriptors /test/images_clusters  /test/clusters_per_images
-
+```bash
+SMHdocument.py SIZE /test/images_descriptors /test/images_clusters  /test/clusters_per_images
+```
 EJECUTAR SMH...
 
 ### Visualización de estructuras 
