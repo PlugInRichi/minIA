@@ -7,7 +7,7 @@ y nombre del archivo para cada imagen encontrada en el directorio.
 import os.path as path
 
 from minIA.utiles import lectura_img
-from minIA.models import Delf, Sift, Surf
+from models import Delf, Sift, Surf
 from tqdm import tqdm
 import argparse
 import pickle
