@@ -23,7 +23,3 @@ class ExtractorDELF:
         im = np.array(utils.RgbLoader(image_path))
         extracted_features = self.model(im)
         return  extracted_features['local_features']
-
-if __name__ == '__main__':
-    e = ExtractorDELF('/data/config/delf_config_galaxy.pbtxt')
-    print(e.extract_features('/data/images/images_gz2/1022.jpg'))

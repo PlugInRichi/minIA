@@ -7,10 +7,9 @@ y nombre del archivo para cada imagen encontrada en el directorio.
 import os.path as path
 
 from minIA.utiles import lectura_img
+from minIA.models import Delf, Sift, Surf
 from tqdm import tqdm
 import argparse
-import numpy as np
-import cv2 as cv
 import pickle
 
 parser = argparse.ArgumentParser()
@@ -49,53 +48,10 @@ parser.add_argument("-edgeThreshold",
 parser.add_argument("-sigma",
     help="Parametro de SIFT", default=1.6, type=float)
 
+parser.add_argument("-delf_configuration",
+    help="Archivo de configuración delf", default='/data/config/delf_config_galaxy.pbtxt')
+
 args = parser.parse_args()
-
-'''
-Se planea que todos los extractores implementen esta clase, para que el código
-principal (main) no tenga modificaciones y funcione igual independientemente del
-método de extración.
-'''
-class Extractor(object):
-    def calculoDescriptores(self, imagen):
-        raise NotImplementedError('todas las subclases deben sobrescribir')
-        #      [[ [x, y, size] , [descriptor], [nombreArch] ] ....[]   ]
-
-
-class Sift(Extractor):
-    def __init__(self, auto, nfeatures, nOctaveLayers, contrastThreshold,
-                 edgeThreshold, sigma):
-        if auto:
-            self.sift = cv.xfeatures2d_SIFT.create()
-        else:
-            self.sift = cv.xfeatures2d_SIFT.create(nfeatures, nOctaveLayers,
-            contrastThreshold, edgeThreshold, sigma)
-
-    def calculoDescriptores(self, imagen):
-        kps, descs = self.sift.detectAndCompute(imagen,None)
-        keypoints = list()
-        for kp in kps:
-            keypoints.append([kp.pt[0], kp.pt[1], kp.size])
-        return  {'keypoints': keypoints, 'descriptors':descs}
-
-
-class Surf(Extractor):
-    def __init__(self, auto, threshold, nOctaves, nOctaveLayers, extended,
-                upright):
-        if auto:
-            self.surf = cv.xfeatures2d.SURF_create()
-        else:
-            self.surf = cv.xfeatures2d.SURF_create(threshold, nOctaves,
-            nOctaveLayers, extended, upright)
-
-    def calculoDescriptores(self, imagen):
-        kps, descs = self.surf.detectAndCompute(imagen,None)
-        keypoints = list()
-        for kp in kps:
-            keypoints.append([kp.pt[0], kp.pt[1], kp.size])
-        return  {'keypoints': keypoints, 'descriptors':descs}
-
-
 
 #Definición del tipo de extractor
 if args.extr == 'SIFT':
@@ -105,32 +61,26 @@ elif args.extr == 'SURF':
     extractor = Surf(args.auto, args.threshold, args.nOctaves,
     args.nOctaveLayers, args.extended, args.upright)
 else:
-    #extractor = Delf()
-    pass
+    extractor = Delf(args.delf_configuration)
+
+if args.median_filter:
+    extractor.filter = True
 
 
 def main(args=args):
-    path_images = lectura_img(args.dir)
+    images_paths = lectura_img(args.dir)
     path_pickle = path.abspath(args.dir_output+'_'+args.extr+'.pickle')
-    descriptores = list()
+    descriptors= list()
     pickle_file = open(path_pickle, 'wb')
-    for imagen in tqdm(path_images):
-
-        if args.median_filter == True:
-            img = cv.imread(imagen, cv.COLOR_HSV2BGR)
-            image_gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
-            img= cv.medianBlur(image_gray, args.median_value)
-        else:
-            img = cv.imread(imagen, cv.COLOR_BGR2GRAY)
-
-        nom_img = path.split(imagen)[1]
-        descs_img = extractor.calculoDescriptores(img)
+    for image_path in tqdm(images_paths):
+        nom_img = path.split(image_path)[1]
+        descs_img = extractor.get_features(image_path)
         if descs_img['descriptors'] is not None:
             descs_img['name_img'] = nom_img
-            descriptores.append(descs_img)
+            descriptors.append(descs_img)
 
     pickle.dump(args, pickle_file)
-    pickle.dump(descriptores, pickle_file)
+    pickle.dump(descriptors, pickle_file)
     print('¡Listo! ' + args.extr)
 
 if __name__ == '__main__':
