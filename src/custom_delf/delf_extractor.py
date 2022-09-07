@@ -4,7 +4,7 @@ import tensorflow as tf
 from google.protobuf import text_format
 from delf import delf_config_pb2
 from delf import utils
-from src.custom_delf.utils import custom_extractor as extractor
+from custom_delf.utils import custom_extractor as extractor
 
 physical_devices = tf.config.experimental.list_physical_devices('GPU')
 assert len(physical_devices) > 0, "Not enough GPU hardware devices available"
