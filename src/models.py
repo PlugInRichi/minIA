@@ -1,6 +1,6 @@
 import numpy as np
 import cv2 as cv
-from src.delf.delf_extractor import ExtractorDELF
+from delf.delf_extractor import ExtractorDELF
 
 
 class Extractor(object):
