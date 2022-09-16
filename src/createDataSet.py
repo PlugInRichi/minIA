@@ -118,12 +118,13 @@ def create_training_file(full_path, filtered_path, galaxy_types):
         full_dataset.write('type_galaxy_id,images\n')
         filtered_dataset.write('type_galaxy_id,images\n')
         for galaxy_type in GALAXY_TYPES:
-            print(galaxy_type)
-            names = 'F' + ' F'.join(galaxy_types[galaxy_type])
-            filtered_dataset.write(str(g_index) + ',' + names + '\n')
-            names = names + ' ' + ' '.join(galaxy_types[galaxy_type])
-            full_dataset.write(str(g_index) + ',' + names + '\n')
-            g_index += 1
+            if galaxy_type in galaxy_types.keys():
+                print(galaxy_type)
+                names = 'F' + ' F'.join(galaxy_types[galaxy_type])
+                filtered_dataset.write(str(g_index) + ',' + names + '\n')
+                names = names + ' ' + ' '.join(galaxy_types[galaxy_type])
+                full_dataset.write(str(g_index) + ',' + names + '\n')
+                g_index += 1
 
 
 def create_image_dataset(images, dir_path):
