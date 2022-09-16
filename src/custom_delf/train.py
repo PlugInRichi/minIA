@@ -272,7 +272,7 @@ def main(argv):
     # ------------------------------------------------------------
     # Setup DELF model and optimizer.
     model = create_model(FLAGS.num_classes)
-    logging.info('Model, datasets loaded.\nnum_classes= %d', num_classes)
+    logging.info('Model, datasets loaded.\nnum_classes= %d', FLAGS.num_classes)
 
     optimizer = tf.keras.optimizers.SGD(learning_rate=initial_lr, momentum=0.9)
 
