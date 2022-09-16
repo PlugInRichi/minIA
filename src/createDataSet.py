@@ -27,49 +27,39 @@ def delete_not_found(images_path, df_clean):
     indexes = df_clean['asset_id'].isin(map_diff)
     return df_clean.loc[indexes]
 
-def assign_class(df, threshold=0.70):
+def assign_class(df):
     """return SET OF DATAFRAMES"""
+    tr_prev = 0.70
+    tr_class = 0.75
     galaxy_types = {}
-    #Pink
-    odd_yes = df['t06_odd_a14_yes_debiased'] > 0.70
-    galaxy_types['ring'] = df['asset_id'][odd_yes & (df['t08_odd_feature_a19_ring_debiased'] > threshold)]
-    #galaxy_types['lens_or_arc'] = df['asset_id'][odd_yes & (df['t08_odd_feature_a20_lens_or_arc_debiased'] > threshold)]
-    #galaxy_types['disturbed'] = df['asset_id'][odd_yes & (df['t08_odd_feature_a21_disturbed_debiased'] > threshold)]
-    galaxy_types['irregular'] = df['asset_id'][odd_yes & (df['t08_odd_feature_a22_irregular_debiased'] > threshold)]
-    galaxy_types['merger'] = df['asset_id'][odd_yes & (df['t08_odd_feature_a24_merger_debiased'] > threshold)]
-    #galaxy_types['dust_lane'] = df['asset_id'][odd_yes & (df['t08_odd_feature_a38_dust_lane_debiased'] > threshold)]
 
-    #Red
-    odd_no = df['t06_odd_a15_no_debiased']> 0.85
-    edgeon_yes = df['t02_edgeon_a04_yes_debiased'] > 0.85
+    smooth = df['t01_smooth_or_features_a01_smooth_debiased'] > tr_prev
+    features_or_disk = df['t01_smooth_or_features_a02_features_or_disk_debiased'] > tr_prev
 
-    galaxy_types['rounded'] = df['asset_id'][odd_no & edgeon_yes & (df['t09_bulge_shape_a25_rounded_debiased'] > 0.90)]
-    #galaxy_types['boxy'] = df['asset_id'][odd_no & edgeon_yes & (df['t09_bulge_shape_a26_boxy_debiased'] > 0.70)]
-    galaxy_types['no_bulge'] = df['asset_id'][odd_no & edgeon_yes & (df['t09_bulge_shape_a27_no_bulge_debiased'] > 0.90)]
+    edgeon_yes = features_or_disk & (df['t02_edgeon_a04_yes_debiased'] > tr_prev)
+    edgeon_no = features_or_disk & (df['t02_edgeon_a05_no_debiased'] > tr_prev)
 
-    #Orange
-    edgeon_no = df['t02_edgeon_a05_no_debiased'] > 0.85
-    no_spiral = odd_no & edgeon_no &(df['t04_spiral_a09_no_spiral_debiased'] > 0.85)
-    galaxy_types['no_central_bulge'] = df['asset_id'][no_spiral &
-                                                      (df['t05_bulge_prominence_a10_no_bulge_debiased'] > threshold)]
-    galaxy_types['dominant'] = df['asset_id'][no_spiral & (df['t05_bulge_prominence_a13_dominant_debiased'] > threshold)]
+    spiral_yes = edgeon_no & (df['t04_spiral_a08_spiral_debiased'] > tr_prev)
 
-    #Green
-    spiral_yes = odd_no & edgeon_no & (df['t04_spiral_a08_spiral_debiased'] > 0.85)
-    galaxy_types['tight'] = df['asset_id'][spiral_yes & (df['t10_arms_winding_a28_tight_debiased'] > threshold)]
-    galaxy_types['medium'] = df['asset_id'][spiral_yes & (df['t10_arms_winding_a29_medium_debiased'] > threshold)]
-    galaxy_types['loose'] = df['asset_id'][spiral_yes & (df['t10_arms_winding_a30_loose_debiased'] > threshold)]
+    odd_yes = df['t06_odd_a14_yes_debiased'] > tr_prev
 
-    #Yellow
-    smooth = odd_no & (df['t01_smooth_or_features_a01_smooth_debiased'] > 0.85)
+    # Pink
+    galaxy_types['ring'] = df['asset_id'][odd_yes & (df['t08_odd_feature_a19_ring_debiased'] > tr_class)]
+
+    # Red
+    galaxy_types['rounded'] = df['asset_id'][edgeon_yes & (df['t09_bulge_shape_a25_rounded_debiased'] > tr_class)]
+    galaxy_types['no_bulge'] = df['asset_id'][edgeon_yes & (df['t09_bulge_shape_a27_no_bulge_debiased'] > tr_class)]
+
+    # Green
+    galaxy_types['tight'] = df['asset_id'][spiral_yes & (df['t10_arms_winding_a28_tight_debiased'] > tr_class)]
+    galaxy_types['medium'] = df['asset_id'][spiral_yes & (df['t10_arms_winding_a29_medium_debiased'] > tr_class)]
+    galaxy_types['loose'] = df['asset_id'][spiral_yes & (df['t10_arms_winding_a30_loose_debiased'] > tr_class)]
+
+    # Yellow
     galaxy_types['completely_round'] = df['asset_id'][smooth &
-                                                      (df['t07_rounded_a16_completely_round_debiased'] > 0.90)]
-    galaxy_types['in_between'] = df['asset_id'][smooth & (df['t07_rounded_a17_in_between_debiased'] > 0.90)]
-    galaxy_types['cigar_shaped'] = df['asset_id'][smooth & (df['t07_rounded_a18_cigar_shaped_debiased'] > 0.90)]
-
-    #black
-    bar = edgeon_no & (df['t03_bar_a06_bar_debiased'] > 0.85) & (df['t01_smooth_or_features_a02_features_or_disk_debiased'] > 0.85)
-    galaxy_types['bar'] = df['asset_id'][bar]
+                                                      (df['t07_rounded_a16_completely_round_debiased'] > tr_class)]
+    galaxy_types['in_between'] = df['asset_id'][smooth & (df['t07_rounded_a17_in_between_debiased'] > tr_class)]
+    galaxy_types['cigar_shaped'] = df['asset_id'][smooth & (df['t07_rounded_a18_cigar_shaped_debiased'] > tr_class)]
     return galaxy_types
 
 
