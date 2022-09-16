@@ -107,7 +107,7 @@ def down_sampling(galaxy_types):
             used_images |= set(galaxy_types[galaxy_type])
             estimated_images += len(galaxy_types[galaxy_type])
             print('Found ' + str(len(galaxy_types[galaxy_type])) + ' images for ' + galaxy_type + ' class')
-        print('Total of images used for training: ', len(used_images),' estimated: ', estimated_images)
+    print('Total of images used for training: ', len(used_images),' estimated: ', estimated_images)
     return used_images
 
 
