@@ -103,6 +103,10 @@ flags.DEFINE_float(
     'Default value 1024 is the number of channels of block3. Used only if'
     'use_autoencoder=True.')
 
+flags.DEFINE_integer(
+    'num_classes', 14,
+    'Number of model classes.')
+
 
 def _record_accuracy(metric, logits, labels):
   """Record accuracy given predicted logits and ground-truth labels."""
@@ -213,7 +217,6 @@ def main(argv):
   # Determine the number of classes based on the version of the dataset.
   #gld_info = gld.GoogleLandmarksInfo()
   #num_classes = gld_info.num_classes[FLAGS.dataset_version]
-  num_classes = 14
 
   # ------------------------------------------------------------
   # Create the distributed train/validation sets.
@@ -268,7 +271,7 @@ def main(argv):
 
     # ------------------------------------------------------------
     # Setup DELF model and optimizer.
-    model = create_model(num_classes)
+    model = create_model(FLAGS.num_classes)
     logging.info('Model, datasets loaded.\nnum_classes= %d', num_classes)
 
     optimizer = tf.keras.optimizers.SGD(learning_rate=initial_lr, momentum=0.9)
