@@ -99,14 +99,15 @@ def down_sampling(galaxy_types):
     used_images = set()
     estimated_images = 0 #Use for find overlapping
     for galaxy_type in GALAXY_TYPES:
-        if len(galaxy_types[galaxy_type]) > 5000:
-            galaxy_types[galaxy_type] = list(np.random.choice(galaxy_types[galaxy_type], 5000, replace=False))
-        else:
-            galaxy_types[galaxy_type] = galaxy_types[galaxy_type].to_list()
-        used_images |= set(galaxy_types[galaxy_type])
-        estimated_images += len(galaxy_types[galaxy_type])
-        print('Found ' + str(len(galaxy_types[galaxy_type])) + ' images for ' + galaxy_type + ' class')
-    print('Total of images used for training: ', len(used_images),' estimated: ', estimated_images)
+        if galaxy_type in galaxy_types.keys():
+            if len(galaxy_types[galaxy_type]) > 5000:
+                galaxy_types[galaxy_type] = list(np.random.choice(galaxy_types[galaxy_type], 5000, replace=False))
+            else:
+                galaxy_types[galaxy_type] = galaxy_types[galaxy_type].to_list()
+            used_images |= set(galaxy_types[galaxy_type])
+            estimated_images += len(galaxy_types[galaxy_type])
+            print('Found ' + str(len(galaxy_types[galaxy_type])) + ' images for ' + galaxy_type + ' class')
+        print('Total of images used for training: ', len(used_images),' estimated: ', estimated_images)
     return used_images
 
 
