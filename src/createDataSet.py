@@ -1,13 +1,12 @@
-import os
 import pandas as pd
 import numpy as np
-import cv2 as cv
 import yaml
-from tqdm import tqdm
-from minIA.imageProcessing import filter_image, change_position
-from minIA.constrains import SELECTED_TYPES, PRIOR_TYPES, GALAXY_TYPES, ALL_TYPES
+from minIA.imageProcessing import filter_images
+from minIA.constrains import GALAXY_TYPES, ALL_TYPES
+import os
 
 np.random.seed(5986)
+
 
 def create_dataframe(cfg_dataset):
     df_map = pd.read_csv(cfg_dataset['map_images_path'])
@@ -21,11 +20,9 @@ def create_dataframe(cfg_dataset):
 def delete_not_found(images_path, df_clean):
     images_found = set([image_name.split('.')[0] for image_name in os.listdir(images_path)])
     map_diff = set(df_clean['asset_id']) & images_found
-    #found_diff = list(images_found - set(df_clean['asset_id']))
-    #for image_lost in found_diff:
-    #    os.remove(images_path + image_lost + '.jpg')
     indexes = df_clean['asset_id'].isin(map_diff)
     return df_clean.loc[indexes]
+
 
 def assign_class(df):
     """return SET OF DATAFRAMES"""
@@ -63,27 +60,16 @@ def assign_class(df):
     return galaxy_types
 
 
-def overlapping (dic_galaxy):
+# Just for testing
+def overlapping(dic_galaxy):
     dic_galaxy_c = dic_galaxy.copy()
     for key, value in dic_galaxy.items():
         for key_2, value_2 in dic_galaxy_c.items():
             op = len(set(value) & set(value_2))
             if op != 0:
-                print('Overlapping between ', key,' and ', key_2,' is ', op)
+                print('Overlapping between ', key, ' and ', key_2, ' is ', op)
         dic_galaxy_c.pop(key)
 
-
-
-
-
-def create_mask(dataframe, threshold):
-    mask = None
-    for prior in PRIOR_TYPES:
-        if mask is None:
-            mask = dataframe[prior] > threshold
-        else:
-            mask |= dataframe[prior] > threshold
-    return mask
 
 def images_per_class(df_clean, threshold):
     """
@@ -97,7 +83,7 @@ def images_per_class(df_clean, threshold):
 
 def down_sampling(galaxy_types):
     used_images = set()
-    estimated_images = 0 #Use for find overlapping
+    estimated_images = 0  # Use for find overlapping
     for galaxy_type in GALAXY_TYPES:
         if galaxy_type in galaxy_types.keys():
             if len(galaxy_types[galaxy_type]) > 5000:
@@ -107,9 +93,8 @@ def down_sampling(galaxy_types):
             used_images |= set(galaxy_types[galaxy_type])
             estimated_images += len(galaxy_types[galaxy_type])
             print('Found ' + str(len(galaxy_types[galaxy_type])) + ' images for ' + galaxy_type + ' class')
-    print('Total of images used for training: ', len(used_images),' estimated: ', estimated_images)
+    print('Total of images used for training: ', len(used_images), ' estimated: ', estimated_images)
     return used_images
-
 
 
 def create_training_file(full_path, filtered_path, galaxy_types):
@@ -127,51 +112,23 @@ def create_training_file(full_path, filtered_path, galaxy_types):
                 g_index += 1
 
 
-def create_image_dataset(images, dir_path):
-    kernel = np.ones((3, 3), np.uint8)
-    in_image_dir = set()
-    all_images = images
-    for image_name in tqdm(all_images):
-        path = os.path.join(dir_path, image_name + '.jpg')
-        image = cv.imread(path, cv.IMREAD_COLOR)
-        if image is not None:
-            img_filtered = filter_image(image, kernel, 6)
-            new_image = change_position(img_filtered)
-            cv.imwrite(os.path.join(dir_path, 'F' + image_name + '.jpg'), new_image)
-            in_image_dir.add(image_name)
-    print(len(in_image_dir), '/', len(all_images))
-    return in_image_dir
-
-
 def main():
     with open("../data/config/dataset_config.yml", "r") as config_file:
         cfg_dataset = yaml.safe_load(config_file)
-
 
     print('Creating Dataframe... ')
     df_clean = create_dataframe(cfg_dataset)
 
     print('Deleting lost images... ')
     df_clean = delete_not_found(cfg_dataset['images_dir_path'], df_clean)
-
-    print('Applying mask to prioritize underrepresented classes...')
-    #mask = create_mask(df_clean, cfg_dataset['th_score'])
-    #df_clean = df_clean[mask]
-
     print('Total of samples: ', len(df_clean))
-    #if 'sample_size' in cfg_dataset:
-    #    print('Using a sample of size ', cfg_dataset['sample_size'])
-    #    df_clean = df_clean.sample(cfg_dataset['sample_size'], random_state=6564)
 
     print('Making some groups... ')
-    #galaxy_groups = images_per_class(df_clean, cfg_dataset['th_score'])
     galaxy_groups = assign_class(df_clean)
-    overlapping(galaxy_groups)
     used_images = down_sampling(galaxy_groups)
 
     print('Creando imágenes filtradas... ')
-    images = list(used_images)
-    in_image_dir = create_image_dataset(images, cfg_dataset['images_dir_path']) #faltaron 3?
+    filter_images(list(used_images), cfg_dataset['images_dir_path'], cfg_dataset['images_dir_path'])
 
     print('Exportando archivo de entrenamiento... ')
     create_training_file(cfg_dataset['full_train_dataset_path'],
@@ -181,8 +138,5 @@ def main():
 
 
 if __name__ == '__main__':
-    import os
-
     os.chdir('/')
-
     main()
