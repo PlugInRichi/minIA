@@ -16,7 +16,6 @@ import pickle
 import numpy as np
 import pandas as pd
 from sklearn.cluster import MiniBatchKMeans
-import matplotlib.pyplot as plt
 import argparse
 
 
@@ -31,7 +30,7 @@ args = parser.parse_args()
 
 def main(args=args):
     with open(args.descriptors, 'rb') as pickle_file:
-        params = pickle.load(pickle_file) #Parámetros de extración
+        _ = pickle.load(pickle_file) #Parámetros de extración
         data = pickle.load(pickle_file) #Lista de descriptores por imagen
 
     list_descs = [img['descriptors'] for img in data] #"Vectores descriptores"
@@ -41,7 +40,7 @@ def main(args=args):
     #clusterización
     print("\nDatos cargados correctamente, iniciando clusterización...\n")
     kmeans = MiniBatchKMeans(n_clusters=args.Nclusters, init='k-means++',
-      n_init=10, max_iter=300, tol=0.0001 ).fit(all_descs)
+      n_init=25, batch_size=4096, verbose=1, max_iter=10, tol=0.000001).fit(all_descs)
 
     etiquetas = kmeans.labels_
     long_desc = np.array([len(descs_img) for descs_img in list_descs])
@@ -50,7 +49,7 @@ def main(args=args):
     #Segmentación de todos los descriptores por cada imagen
     list_etiq = np.split(etiquetas, indexes[:-1])
     list_etiq = np.array(list_etiq, dtype=np.ndarray).reshape(-1,1)
-    data = np.insert(list_etiq, 1, np.array((names)), axis = 1)
+    data = np.insert(list_etiq, 1, np.array((names)), axis=1)
 
     with open(args.cluster, 'wb') as pickle_file:
         pickle.dump(pd.DataFrame(data), pickle_file)
