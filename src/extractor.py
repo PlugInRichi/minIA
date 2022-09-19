@@ -70,7 +70,7 @@ if args.median_filter:
 def main(args=args):
     images_paths = lectura_img(args.dir)
     path_pickle = path.abspath(args.dir_output+'_'+args.extr+'.pickle')
-    descriptors= list()
+    descriptors = list()
     pickle_file = open(path_pickle, 'wb')
     for image_path in tqdm(images_paths):
         nom_img = path.split(image_path)[1]
