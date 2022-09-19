@@ -4,7 +4,7 @@ from custom_delf.delf_extractor import ExtractorDELF
 
 
 class Extractor(object):
-    def __int__(self):
+    def __init__(self):
         self.model = None
         self.filter = False
     def read_path(self, image_path):
@@ -28,6 +28,7 @@ class Extractor(object):
 class Sift(Extractor):
     def __init__(self, auto, nfeatures, nOctaveLayers, contrastThreshold,
                  edgeThreshold, sigma):
+        super().__init__()
         if auto:
             self.model = cv.xfeatures2d_SIFT.create()
         else:
@@ -38,6 +39,7 @@ class Sift(Extractor):
 class Surf(Extractor):
     def __init__(self, auto, threshold, nOctaves, nOctaveLayers, extended,
                 upright):
+        super().__init__()
         if auto:
             self.model = cv.xfeatures2d.SURF_create()
         else:
