@@ -11,7 +11,7 @@ class Extractor(object):
         if self.filter:
             img = cv.imread(image_path, cv.COLOR_HSV2BGR)
             image_gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
-            img = cv.medianBlur(image_gray, args.median_value)
+            img = cv.medianBlur(image_gray, 9)
         else:
             img = cv.imread(image_path, cv.COLOR_BGR2GRAY)
         return img
