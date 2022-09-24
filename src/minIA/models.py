@@ -55,7 +55,7 @@ class Delf(Extractor):
         extracted_features = self.model.extract_features(image_path)
         locations = extracted_features['locations']
         descriptors = extracted_features['descriptors']
-        #descriptors = descriptors if len(descriptors) > 0 else None
+        descriptors = descriptors if len(descriptors) > 0 else None
         feature_scales = extracted_features['scales']
         attention = extracted_features['attention']
         key_points = np.concatenate((locations, feature_scales.reshape(-1, 1)), axis=1)
