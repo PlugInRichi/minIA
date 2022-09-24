@@ -1,11 +1,11 @@
-model_path: "/data/models/final_model"
-image_scales: .25
-image_scales: .3536
+model_path: "/data/models/v3-0"
 image_scales: .5
 image_scales: .7071
 image_scales: 1.0
 image_scales: 1.4142
 image_scales: 2.0
+image_scales: 2.4494
+image_scales: 4.0
 is_tf2_exported: true
 delf_local_config {
   use_pca: false

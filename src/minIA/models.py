@@ -22,7 +22,7 @@ class Extractor(object):
         keypoints = list()
         for kp in kps:
             keypoints.append(np.array([kp.pt[0], kp.pt[1], kp.size]))
-        return  {'keypoints': keypoints, 'descriptors':descs}
+        return  {'keypoints': keypoints, 'descriptors': descs}
 
 
 class Sift(Extractor):
@@ -55,9 +55,10 @@ class Delf(Extractor):
         extracted_features = self.model.extract_features(image_path)
         locations = extracted_features['locations']
         descriptors = extracted_features['descriptors']
+        #descriptors = descriptors if len(descriptors) > 0 else None
         feature_scales = extracted_features['scales']
         attention = extracted_features['attention']
         key_points = np.concatenate((locations, feature_scales.reshape(-1, 1)), axis=1)
         return {'keypoints': key_points,
-                'descriptors':descriptors,
-                'attention':attention}
+                'descriptors': descriptors,
+                'attention': attention}
