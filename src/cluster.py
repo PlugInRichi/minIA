@@ -29,30 +29,23 @@ parser.add_argument('Nclusters',
 args = parser.parse_args()
 
 def main(args=args):
-    with open(args.descriptors, 'rb') as pickle_file:
-        _ = pickle.load(pickle_file) #Parámetros de extración
-        data = pickle.load(pickle_file) #Lista de descriptores por imagen
+    columns_name = ['index', 'location', 'size', 'image_name']
+    indexes_name = ['index', 'image_name']
+    with open(args.descriptors+'.csv', 'r') as file:
+        features_df = pd.read_csv(file, names=columns_name, index_col=indexes_name)
+    descriptors = np.loadtxt(args.descriptors+'.txt')
 
-    list_descs = [img['descriptors'] for img in data] #"Vectores descriptores"
-    names = [img['name_img'] for img in data] #"Nombres"
-    all_descs = [desc for descs_img in list_descs for desc in descs_img]
-
-    #clusterización
     print("\nDatos cargados correctamente, iniciando clusterización...\n")
-    kmeans = MiniBatchKMeans(n_clusters=args.Nclusters, init='k-means++',
-      n_init=25, batch_size=4096, verbose=1, max_iter=10, tol=0.000001).fit(all_descs)
+    kmeans = MiniBatchKMeans(n_clusters=args.Nclusters,
+                             init='k-means++',
+                             n_init=1,
+                             batch_size=4096,
+                             verbose=1,
+                             max_iter=10,
+                             tol=0.000001).fit(descriptors)
 
-    etiquetas = kmeans.labels_
-    long_desc = np.array([len(descs_img) for descs_img in list_descs])
-    indexes = np.cumsum(long_desc)
-
-    #Segmentación de todos los descriptores por cada imagen
-    list_etiq = np.split(etiquetas, indexes[:-1])
-    list_etiq = np.array(list_etiq, dtype=np.ndarray).reshape(-1,1)
-    data = np.insert(list_etiq, 1, np.array((names)), axis=1)
-
-    with open(args.cluster, 'wb') as pickle_file:
-        pickle.dump(pd.DataFrame(data), pickle_file)
+    features_df['descriptor_id'] = kmeans.labels_.astype(int).tolist()
+    features_df.to_csv(args.cluster+'.csv')
 
 if __name__ == '__main__':
   main()

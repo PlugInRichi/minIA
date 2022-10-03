@@ -8,13 +8,11 @@ import os.path as path
 
 import numpy as np
 import pandas as pd
-from scipy import sparse
 
 from minIA.utiles import lectura_img
 from minIA.models import Delf, Sift, Surf
 from tqdm import tqdm
 import argparse
-import pickle
 
 parser = argparse.ArgumentParser()
 parser.add_argument("extr",
@@ -73,23 +71,17 @@ if args.median_filter:
 
 def main(args=args):
     images_paths = lectura_img(args.dir)
-    features_df = pd.DataFrame()
     path_file = path.abspath(args.dir_output + '_' + args.extr)
-    descriptors_file = open(path_file+'.npy', 'wb')
+    descriptors_file = open(path_file+'.txt', 'wb')
+    features_file = open(path_file+'.csv', 'w')
     for image_path in tqdm(images_paths):
         nom_img = path.split(image_path)[1][:-4]
         img_features, img_descriptors = extractor.get_features(image_path)
         if img_features is not None:
             img_features_df = pd.DataFrame(img_features)
             img_features_df['name_img'] = nom_img
-            features_df = pd.concat([features_df, img_features_df])
-            np.save(descriptors_file, img_descriptors)
-
-    features_df.set_index('name_img', inplace=True, append=True)
-    path_pickle = path.abspath(args.dir_output+'_'+args.extr+'.pickle')
-    features_file = open(path_pickle, 'wb')
-    pickle.dump(args, features_file)
-    pickle.dump(features_df, features_file)
+            np.savetxt(descriptors_file, img_descriptors.astype('int'),fmt='%d')
+            img_features_df.to_csv(features_file, mode='a', header=False)
     print('¡Listo! ' + args.extr)
 
 if __name__ == '__main__':
