@@ -6,6 +6,8 @@ y nombre del archivo para cada imagen encontrada en el directorio.
 """
 import os.path as path
 
+import pandas as pd
+
 from minIA.utiles import lectura_img
 from minIA.models import Delf, Sift, Surf
 from tqdm import tqdm
@@ -70,17 +72,18 @@ if args.median_filter:
 def main(args=args):
     images_paths = lectura_img(args.dir)
     path_pickle = path.abspath(args.dir_output+'_'+args.extr+'.pickle')
-    descriptors = list()
+    dataset_features_df = pd.DataFrame()
     pickle_file = open(path_pickle, 'wb')
     for image_path in tqdm(images_paths):
         nom_img = path.split(image_path)[1]
-        descs_img = extractor.get_features(image_path)
-        if descs_img['descriptors'] is not None:
-            descs_img['name_img'] = nom_img
-            descriptors.append(descs_img)
-
+        img_features = extractor.get_features(image_path)
+        if img_features is not None:
+            img_features_df = pd.DataFrame(img_features)
+            img_features_df['name_img'] = nom_img[:-4]
+            dataset_features_df = pd.concat([dataset_features_df, img_features_df])
+    dataset_features_df.set_index('name_img', inplace=True, append=True)
     pickle.dump(args, pickle_file)
-    pickle.dump(descriptors, pickle_file)
+    pickle.dump(dataset_features_df, pickle_file)
     print('¡Listo! ' + args.extr)
 
 if __name__ == '__main__':

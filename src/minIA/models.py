@@ -18,11 +18,14 @@ class Extractor(object):
 
     def get_features(self, image_path):
         imagen = self.read_path(image_path)
-        kps, descs = self.model.detectAndCompute(imagen,None)
-        keypoints = list()
-        for kp in kps:
-            keypoints.append(np.array([kp.pt[0], kp.pt[1], kp.size]))
-        return  {'keypoints': keypoints, 'descriptors': descs}
+        kps, descriptors = self.model.detectAndCompute(imagen, None)
+        if descriptors is not None:
+            descriptors = descriptors.astype('int32')
+            kp_location = [np.array((kp.pt[0], kp.pt[1])).round() for kp in kps]
+            kp_size = [kp.size for kp in kps]
+            return {'location': kp_location, 'size': kp_size, 'descriptor': descriptors.tolist()}
+        else:
+            return None
 
 
 class Sift(Extractor):
@@ -57,8 +60,5 @@ class Delf(Extractor):
         descriptors = extracted_features['descriptors']
         descriptors = descriptors if len(descriptors) > 0 else None
         feature_scales = extracted_features['scales']
-        attention = extracted_features['attention']
-        key_points = np.concatenate((locations, feature_scales.reshape(-1, 1)), axis=1)
-        return {'keypoints': key_points,
-                'descriptors': descriptors,
-                'attention': attention}
+        score = extracted_features['attention']
+        return {'location': locations, 'size': feature_scales, 'descriptor': descriptors, 'score': score}
