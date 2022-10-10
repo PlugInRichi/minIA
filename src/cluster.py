@@ -24,12 +24,12 @@ parser.add_argument('cluster',
 parser.add_argument('num_clusters',
                     help='Number of clusters', type=int)
 args = parser.parse_args()
+dtype_desc = np.uint8 if ('SIFT' in args.descriptors) else np.float32
 
 
 def main():
-    with open(args.descriptors + '.csv', 'r') as file:
-        features_df = pd.read_csv(file)
-    descriptors = np.loadtxt(args.descriptors + '.txt')
+
+    descriptors = np.loadtxt(args.descriptors + '.txt', dtype=dtype_desc)
 
     print("\nData uploaded successfully, starting clustering...\n")
     kmeans = MiniBatchKMeans(n_clusters=args.num_clusters,
@@ -40,6 +40,10 @@ def main():
                              max_iter=50,
                              tol=0.000001).fit(descriptors)
 
+    del descriptors
+    print('añadiendo los nuevos ')
+    with open(args.descriptors + '.csv', 'r') as file:
+        features_df = pd.read_csv(file)
     features_df['descriptor_id'] = kmeans.labels_.astype(int).tolist()
     features_df.to_csv(args.cluster + '.csv')
 
