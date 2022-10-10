@@ -39,9 +39,8 @@ def main():
                              verbose=1,
                              max_iter=50,
                              tol=0.000001).fit(descriptors)
-
     del descriptors
-    print('añadiendo los nuevos ')
+    print('Saving data...')
     with open(args.descriptors + '.csv', 'r') as file:
         features_df = pd.read_csv(file)
     features_df['descriptor_id'] = kmeans.labels_.astype(int).tolist()
