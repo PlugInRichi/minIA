@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 """
-Exporta una lista (archivo pickle) que contiene los keypoints, descriptores
-y nombre del archivo para cada imagen encontrada en el directorio.
+Extract images features from image directory
 """
 import os.path as path
 
@@ -16,73 +15,77 @@ import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument("extr",
-    help='Extractor', choices=['SIFT', 'SURF', 'DELF'])
+                    help='Extractor', choices=['SIFT', 'SURF', 'DELF'])
 parser.add_argument("dir",
-    help='Ruta del directorio de imagenes')
+                    help='Image directory path')
 parser.add_argument("dir_output",
-    help='Ruta del archivo de salida')
+                    help='Output file path')
 parser.add_argument("-auto",
-    help='Cálculo de parámetros automático', action="store_true")
+                    help='Set automatic params for SIFT and SURF', action="store_true")
 
 parser.add_argument('-median_filter',
-    help='Filtro de mediana', default=False, type=bool)
-parser.add_argument('-median_value',
-    help='Valores Impares', default=15, type=int)
+                    help='Median filter', default=False, type=bool)
 
 parser.add_argument("-threshold",
-    help='Parametro de SURF', default=100, type=int)
+                    help='SURF parameter', default=100, type=int)
 parser.add_argument("-nOctaves",
-    help='Parametro de SURF', default=4, type=int)
+                    help='SURF parameter', default=4, type=int)
 parser.add_argument("-nOctaveLayers",
-    help='Parametro de SURF y SIFT', default=3, type=int)
+                    help='SURF parameter y SIFT', default=3, type=int)
 parser.add_argument("-extended",
-    help='Parametro de SURF', default=False, type=bool)
+                    help='SURF parameter', default=False, type=bool)
 parser.add_argument("-upright",
-    help='Parametro de SURF', default=True, type=bool)
+                    help='SURF parameter', default=True, type=bool)
 
-
-parser.add_argument("-nfeatures",
-    help="Parametro de SIFT", default=0, type=int)
+parser.add_argument("-n_features",
+                    help="SIFT parameter", default=0, type=int)
 parser.add_argument("-contrastThreshold",
-    help="Parametro de SIFT", default=0.04, type=float)
+                    help="SIFT parameter", default=0.04, type=float)
 parser.add_argument("-edgeThreshold",
-    help="Parametro de SIFT", default=10, type=float)
+                    help="SIFT parameter", default=10, type=float)
 parser.add_argument("-sigma",
-    help="Parametro de SIFT", default=1.6, type=float)
+                    help="SIFT parameter", default=1.6, type=float)
 
 parser.add_argument("-delf_configuration",
-    help="Archivo de configuración delf", default='/data/config/delf_config_galaxy.pbtxt')
+                    help="DELF file configuration",
+                    default='/data/config/delf_config_galaxy.pbtxt')
 
 args = parser.parse_args()
+line = 'index,location,size,image_name\n'
+fmt = '%d'
 
-#Definición del tipo de extractor
+# Extractor definition
 if args.extr == 'SIFT':
-    extractor = Sift(args.auto, args.nfeatures, args.nOctaveLayers,
-    args.contrastThreshold, args.edgeThreshold, args.sigma)
+    extractor = Sift(args.auto, args.n_features, args.nOctaveLayers,
+                     args.contrastThreshold, args.edgeThreshold, args.sigma)
 elif args.extr == 'SURF':
     extractor = Surf(args.auto, args.threshold, args.nOctaves,
-    args.nOctaveLayers, args.extended, args.upright)
+                     args.nOctaveLayers, args.extended, args.upright)
 else:
     extractor = Delf(args.delf_configuration)
+    line = 'index,location,size,score,image_name\n'
+    fmt = '%.24f'
 
 if args.median_filter:
     extractor.filter = True
 
 
-def main(args=args):
+def main():
     images_paths = lectura_img(args.dir)
     path_file = path.abspath(args.dir_output + '_' + args.extr)
-    descriptors_file = open(path_file+'.txt', 'wb')
-    features_file = open(path_file+'.csv', 'w')
+    descriptors_file = open(path_file + '.txt', 'wb')
+    features_file = open(path_file + '.csv', 'w')
+    features_file.write(line)
     for image_path in tqdm(images_paths):
         nom_img = path.split(image_path)[1][:-4]
         img_features, img_descriptors = extractor.get_features(image_path)
         if img_features is not None:
             img_features_df = pd.DataFrame(img_features)
             img_features_df['name_img'] = nom_img
-            np.savetxt(descriptors_file, img_descriptors.astype('int'),fmt='%d')
+            np.savetxt(descriptors_file, img_descriptors, fmt=fmt)
             img_features_df.to_csv(features_file, mode='a', header=False)
-    print('¡Listo! ' + args.extr)
+    print('Features extracted! ' + args.extr)
+
 
 if __name__ == '__main__':
     main()

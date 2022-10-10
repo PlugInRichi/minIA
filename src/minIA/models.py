@@ -23,7 +23,7 @@ class Extractor(object):
         if descriptors is not None:
             kp_location = [np.rint((kp.pt[0], kp.pt[1])) for kp in kps]
             kp_size = [kp.size for kp in kps]
-            return {'location': kp_location, 'size': kp_size}, descriptors
+            return {'location': kp_location, 'size': kp_size}, descriptors.astype('int')
         else:
             return None, None
 
@@ -59,10 +59,10 @@ class Delf(Extractor):
         extracted_features = self.model.extract_features(image_path)
         descriptors = extracted_features['descriptors']
         if len(descriptors) > 0:
-            locations = extracted_features['locations']
+            locations = list(extracted_features['locations'])
             feature_scales = extracted_features['scales']
             score = extracted_features['attention']
             return {'location': locations, 'size': feature_scales, 'score': score}, descriptors
         else:
-            return None
+            return None, None
 
