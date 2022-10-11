@@ -42,10 +42,10 @@ def main():
         descriptors = np.loadtxt(args.descriptors+'_0'+str(i), dtype=np.float16)
         kmeans.partial_fit(descriptors)
         del descriptors
-    print('\nCluster done!\nssigning labels for all dataset:\n')
+    print('\nCluster done!\nassigning labels for all dataset:\n')
     labels = list()
     for i in range(10):
-        print("Loading "+str(i)+" chunk for assign label...")
+        print("Loading "+str(i)+" chunk for assign  label...")
         descriptors = np.loadtxt(args.descriptors+'_0'+str(i), dtype=np.float16)
         labels += kmeans.predict(descriptors).astype(int).tolist()
         del descriptors
