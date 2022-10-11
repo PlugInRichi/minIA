@@ -38,8 +38,9 @@ def main():
                              tol=0.000001)
 
     for i in range(10):
-        print("Loading "+str(i)+" chunk for clustering...")
+        print("Loading "+str(i)+" chunk for cluster...")
         descriptors = np.fromfile(args.descriptors+'_0'+str(i), dtype=np.float16, count=-1, sep=' ')
+        print("Clustering...")
         kmeans.partial_fit(np.reshape(descriptors, (int(len(descriptors)/128), 128)))
         del descriptors
     print('\nCluster done!\nassigning labels for all dataset:\n')
