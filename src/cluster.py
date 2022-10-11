@@ -41,8 +41,9 @@ def main():
                              tol=0.000001).fit(descriptors)
     del descriptors
     print('Saving data...')
+    indexes_name = ['index', 'image_name']
     with open(args.descriptors + '.csv', 'r') as file:
-        features_df = pd.read_csv(file)
+        features_df = pd.read_csv(file, index_col=indexes_name)
     features_df['descriptor_id'] = kmeans.labels_.astype(int).tolist()
     features_df.to_csv(args.cluster + '.csv')
 
