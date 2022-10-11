@@ -39,15 +39,15 @@ def main():
 
     for i in range(10):
         print("Loading "+str(i)+" chunk for clustering...")
-        descriptors = np.loadtxt(args.descriptors+'_0'+str(i), dtype=np.float16)
-        kmeans.partial_fit(descriptors)
+        descriptors = np.fromfile(args.descriptors+'_0'+str(i), dtype=np.float16, count=-1, sep=' ')
+        kmeans.partial_fit(np.reshape(descriptors, (int(len(descriptors)/128), 128)))
         del descriptors
     print('\nCluster done!\nassigning labels for all dataset:\n')
     labels = list()
     for i in range(10):
         print("Loading "+str(i)+" chunk for assign  label...")
-        descriptors = np.loadtxt(args.descriptors+'_0'+str(i), dtype=np.float16)
-        labels += kmeans.predict(descriptors).astype(int).tolist()
+        descriptors = np.fromfile(args.descriptors+'_0'+str(i), dtype=np.float16, count=-1, sep=' ')
+        labels += kmeans.predict(np.reshape(descriptors, (int(len(descriptors)/128), 128))).astype(int).tolist()
         del descriptors
 
 
