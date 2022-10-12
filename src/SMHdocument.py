@@ -33,13 +33,11 @@ args = parser.parse_args()
 
 def gen_document(descriptors_df, agg_function):
     with open(args.document_name, 'w') as file:
-        img_id = 0
         for name, group in tqdm(descriptors_df.groupby(['image_name'])):
             desc_weight_df = group[['descriptor_id', 'size']].groupby('descriptor_id', as_index=False).agg(agg_function)
             desc_weight = zip(desc_weight_df.iloc[:, 0], desc_weight_df.iloc[:, 1])
             image_desc = [str(desc_id)+':'+str(round(weight)) for desc_id, weight in desc_weight]
-            file.write(str(img_id)+' '+' '.join(image_desc)+'\n')
-            img_id += 1
+            file.write(str(len(image_desc))+' '+' '.join(image_desc)+'\n')
 
 
 def delete_stop_words(desc_distribution):
@@ -73,7 +71,7 @@ def reduce_vocabulary(features_df):
 
 def plot_distribution(desc_distribution, name):
     fig = plt.figure(figsize=(15, 10))
-    desc_distribution.hist(bins=20)
+    desc_distribution.hist(bins=100)
     plt.xlabel('Número de descriptores')
     plt.ylabel('Índices')
     fig.savefig("/data/images/plots/hist_desc" + name + ".jpg", dpi=256, bbox_inches='tight')
