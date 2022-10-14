@@ -41,14 +41,16 @@ def gen_document(descriptors_df, agg_function):
 
 
 def delete_stop_words(desc_distribution):
-    plot_distribution(desc_distribution, 'original')
+    plot_distribution(desc_distribution, 'original_'+str(len(desc_distribution)))
     mean_desc = desc_distribution.mean()
     std_desc = desc_distribution.std()
     low_limit = mean_desc - 2 * std_desc
     upper_limit = mean_desc + 2 * std_desc
     desc_distribution = desc_distribution[desc_distribution > low_limit]
     desc_distribution = desc_distribution[desc_distribution < upper_limit]
-    plot_distribution(desc_distribution, '2sigma')
+    plot_distribution(desc_distribution, '2sigma_'+str(len(desc_distribution)))
+    print('\nVisual word mean: ', "{:.2f}".format(mean_desc))
+    print('Visual word standard deviation: ', "{:.2f}".format(std_desc))
     return desc_distribution
 
 
@@ -72,9 +74,9 @@ def reduce_vocabulary(features_df):
 def plot_distribution(desc_distribution, name):
     fig = plt.figure(figsize=(15, 10))
     desc_distribution.hist(bins=100)
-    plt.xlabel('Número de descriptores')
-    plt.ylabel('Índices')
-    fig.savefig("/data/images/plots/hist_desc" + name + ".jpg", dpi=256, bbox_inches='tight')
+    plt.xlabel('Frecuencia en el conjunto de datos')
+    plt.ylabel('Palabras visuales')
+    fig.savefig("/data/images/plots/hist_desc_" + name + ".jpg", dpi=256, bbox_inches='tight')
 
 
 def main():
