@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 import yaml
-from minIA.imageProcessing import filter_images
+from minIA.imageProcessing import upsampling_imgs
 from minIA.constrains import GALAXY_TYPES, ALL_TYPES
 import os
 
@@ -81,13 +81,13 @@ def images_per_class(df_clean, threshold):
     return classes
 
 
-def down_sampling(galaxy_types):
+def down_sampling(galaxy_types, class_size):
     used_images = set()
     estimated_images = 0  # Use for find overlapping
     for galaxy_type in GALAXY_TYPES:
         if galaxy_type in galaxy_types.keys():
-            if len(galaxy_types[galaxy_type]) > 5000:
-                galaxy_types[galaxy_type] = list(np.random.choice(galaxy_types[galaxy_type], 5000, replace=False))
+            if len(galaxy_types[galaxy_type]) > class_size:
+                galaxy_types[galaxy_type] = list(np.random.choice(galaxy_types[galaxy_type], class_size, replace=False))
             else:
                 galaxy_types[galaxy_type] = galaxy_types[galaxy_type].to_list()
             used_images |= set(galaxy_types[galaxy_type])
@@ -97,17 +97,23 @@ def down_sampling(galaxy_types):
     return used_images
 
 
-def create_training_file(full_path, filtered_path, galaxy_types):
+def create_training_file(train_dataset_path, galaxy_types):
     g_index = 0
-    with open(full_path, 'w') as full_dataset, open(filtered_path, 'w') as filtered_dataset:
+    original_dataset_path = train_dataset_path+'_original.csv'
+    merged_dataset_path = train_dataset_path+'_with_filter.csv'
+    with open(original_dataset_path, 'w') as full_dataset, open(merged_dataset_path, 'w') as filtered_dataset:
         full_dataset.write('type_galaxy_id,images\n')
         filtered_dataset.write('type_galaxy_id,images\n')
         for galaxy_type in GALAXY_TYPES:
             if galaxy_type in galaxy_types.keys():
                 print(galaxy_type)
-                names = 'F' + ' F'.join(galaxy_types[galaxy_type])
+                names_filtered = 'F' + ' F'.join(galaxy_types[galaxy_type])
+                names_augmentation = 'A' + ' A'.join(galaxy_types[galaxy_type])
+
+                names = names_filtered + ' ' + ' '.join(galaxy_types[galaxy_type])
                 filtered_dataset.write(str(g_index) + ',' + names + '\n')
-                names = names + ' ' + ' '.join(galaxy_types[galaxy_type])
+
+                names = names_augmentation + ' ' + ' '.join(galaxy_types[galaxy_type])
                 full_dataset.write(str(g_index) + ',' + names + '\n')
                 g_index += 1
 
@@ -125,15 +131,14 @@ def main():
 
     print('Making some groups... ')
     galaxy_groups = assign_class(df_clean)
-    used_images = down_sampling(galaxy_groups)
+    used_images = down_sampling(galaxy_groups, cfg_dataset['class_size'])
 
     print('Creando imágenes filtradas... ')
-    filter_images(list(used_images), cfg_dataset['images_dir_path'], cfg_dataset['images_dir_path'])
+    upsampling_imgs(list(used_images), cfg_dataset['images_dir_path'], cfg_dataset['images_out_dir_path'])
+    upsampling_imgs(list(used_images), cfg_dataset['images_dir_path'], cfg_dataset['images_out_dir_path'], False)
 
     print('Exportando archivo de entrenamiento... ')
-    create_training_file(cfg_dataset['full_train_dataset_path'],
-                         cfg_dataset['filtered_train_dataset_path'],
-                         galaxy_groups)
+    create_training_file(cfg_dataset['train_dataset_path'], galaxy_groups)
     print('Hecho!')
 
 
