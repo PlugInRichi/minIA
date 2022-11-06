@@ -12,6 +12,9 @@ from minIA.utiles import lectura_img
 from minIA.models import Delf, Sift, Surf
 from tqdm import tqdm
 import argparse
+import random
+
+random.seed(303)
 
 parser = argparse.ArgumentParser()
 parser.add_argument("extr",
@@ -22,6 +25,8 @@ parser.add_argument("dir_output",
                     help='Output file path')
 parser.add_argument("-auto",
                     help='Set automatic params for SIFT and SURF', action="store_true")
+parser.add_argument("-sample",
+                    help='Sample size for dataset reducing ', type=int, default=0)
 
 parser.add_argument('-median_filter',
                     help='Median filter', default=False, type=bool)
@@ -51,7 +56,7 @@ parser.add_argument("-delf_configuration",
                     default='/data/config/delf_config_galaxy.pbtxt')
 
 args = parser.parse_args()
-line = 'index,location,size,image_name\n'
+line = 'location_x,location_y,size,image_name\n'
 fmt = '%d'
 
 # Extractor definition
@@ -63,15 +68,15 @@ elif args.extr == 'SURF':
                      args.nOctaveLayers, args.extended, args.upright)
 else:
     extractor = Delf(args.delf_configuration)
-    line = 'index,location,size,score,image_name\n'
+    line = 'location_x,location_y,size,score,image_name\n'
     fmt = '%.24f'
 
-if args.median_filter:
-    extractor.filter = True
+if args.median_filter: extractor.filter = True
 
 
 def main():
     images_paths = lectura_img(args.dir)
+    if args.sample > 0: images_paths = random.sample(images_paths, args.sample)
     path_file = path.abspath(args.dir_output + '_' + args.extr)
     descriptors_file = open(path_file + '.txt', 'wb')
     features_file = open(path_file + '.csv', 'w')
@@ -83,7 +88,7 @@ def main():
             img_features_df = pd.DataFrame(img_features)
             img_features_df['name_img'] = nom_img
             np.savetxt(descriptors_file, img_descriptors, fmt=fmt)
-            img_features_df.to_csv(features_file, mode='a', header=False)
+            img_features_df.to_csv(features_file, mode='a', header=False, index=False)
     print('Features extracted! ' + args.extr)
 
 
