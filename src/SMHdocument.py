@@ -34,7 +34,7 @@ args = parser.parse_args()
 def gen_document(descriptors_df, agg_function):
     with open(args.document_name, 'w') as file:
         for name, group in tqdm(descriptors_df.groupby(['image_name'])):
-            desc_weight_df = group[['descriptor_id', 'size']].groupby('descriptor_id', as_index=False).agg(agg_function)
+            desc_weight_df = group[['visual_word_id', 'size']].groupby('visual_word_id', as_index=False).agg(agg_function)
             desc_weight = zip(desc_weight_df.iloc[:, 0], desc_weight_df.iloc[:, 1])
             image_desc = [str(desc_id)+':'+str(round(weight)) for desc_id, weight in desc_weight]
             file.write(str(len(image_desc))+' '+' '.join(image_desc)+'\n')
@@ -55,7 +55,7 @@ def delete_stop_words(desc_distribution):
 
 
 def reduce_vocabulary(features_df):
-    vw_distribution = features_df['descriptor_id'].value_counts()
+    vw_distribution = features_df['visual_word_id'].value_counts()
     vocabulary_size = len(vw_distribution)
     vw_total = sum(vw_distribution)
 
@@ -68,7 +68,7 @@ def reduce_vocabulary(features_df):
 
     print('Number of visual words before the reduction:', vw_total)
     print('Visual words after the reduction: ', "{:.2f}".format(clean_vw_pct) + '%')
-    return features_df[features_df['descriptor_id'].isin(clean_vw_distribution.index)]
+    return features_df[features_df['visual_word_id'].isin(clean_vw_distribution.index)]
 
 
 def plot_distribution(desc_distribution, name):
@@ -80,9 +80,8 @@ def plot_distribution(desc_distribution, name):
 
 
 def main():
-    indexes_name = ['index', 'image_name']
     with open(args.cluster + '.csv', 'r') as file:
-        features_df = pd.read_csv(file, index_col=indexes_name)
+        features_df = pd.read_csv(file)
     if args.drop_outliers:
         features_df = reduce_vocabulary(features_df)
     gen_document(features_df, args.use_size)
