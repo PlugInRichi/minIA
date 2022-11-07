@@ -6,28 +6,10 @@
 _El proyecto tiene como finalidad encontrar características dentro de una galería de imágenes que permita identificar los patrones representen estructuras de las galaxias. Haciendo uso de un vocabulario visual se extraen los objetos visuales por medio de Sampled-MinHashing_
 
 ## Comenzando 🚀
+El proyecto completo puede ejecutarse desde un contenedor, las intrucciones para ejecutarlo correctamente pueden ser encontradas [aquí](install).
 
-### Instalación en linux
 
-Crear ambiente
-
-```
-virtualenv -p python3.6 env
-```
-
-Activar el ambiente
-
-```
-source env/bin/activate
-```
-
-Instalar librerias 
-
-```
-pip install -r requirements.txt
-```
-
-Adicionalmente será necesario instalar **Sampled-MinHashing**, para ello puede seguir las intrucciones descritas aquí: [https://github.com/gibranfp/Sampled-MinHashing]
+El uso de **Sampled-MinHashing** requiere de una instalación que no se encuentra en el contenedor, para ello puede seguir las intrucciones descritas aquí: [https://github.com/gibranfp/Sampled-MinHashing]
 
 # Ejecución :joystick:
 
