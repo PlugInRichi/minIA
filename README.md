@@ -9,13 +9,13 @@ _El proyecto tiene como finalidad encontrar características dentro de una galer
 El proyecto completo puede ejecutarse desde un contenedor, las intrucciones para ejecutarlo correctamente pueden ser encontradas [aquí](install).
 
 
-El uso de **Sampled-MinHashing** requiere de una instalación que no se encuentra en el contenedor, para ello puede seguir las intrucciones descritas aquí: [https://github.com/gibranfp/Sampled-MinHashing]
+El uso de **Sampled-MinHashing** requiere de una instalación que no se encuentra en el contenedor, para esto hay que seguir las intruciones en [Sampled-MinHashing](https://github.com/gibranfp/Sampled-MinHashing) repositorio.
 
 # Ejecución :joystick:
 
 ## Entrenamiento del modelo especializado en detección de características
-1. Creación de dataset
-2. Reformating dataset
+1. Dataset creation
+2. Formating dataset
 3. Train
 4. Export Model
 
@@ -25,11 +25,10 @@ Para configurar la creación del dataset de entrenamiento para el modelo neurona
 # data/config/dataset_config.yml
     galaxyZoo2_path:  /data/images/gz2_hart16.csv
     map_images_path:  /data/images/gz2_filename_mapping.csv
-    full_train_dataset_path: /data/images/gz2_train_dataset.csv
-    filtered_train_dataset_path: /data/images/gz2_filtered_train_dataset.csv
-    images_dir_path: /data/images/images_gz2/
-    th_score: 0.95
-    sample_size: 10000
+    train_dataset_path: /data/images/gz2_train_dataset_5000
+    images_dir_path: /data/images/images_gz2
+    images_out_dir_path: /data/images/images_gz2
+    class_size: 5000
 ```
 Después simplemente ejecutar el script
 ```
@@ -37,11 +36,11 @@ python3 createDataSet.py
 ```
 ### Reformating dataset
 ```
-python3 delf/build_galaxy_image_dataset.py \
-  --train_clean_csv_path=/data/images/gz2_filtered_train_dataset.csv \
+python3 custom_delf/build_galaxy_image_dataset.py \
+  --train_clean_csv_path=/data/images/gz2_train_dataset_5000_with_filter.csv \
   --train_directory=/data/images/images_gz2/  \
-  --output_directory=/data/tf_records/v1-0 \
-  --num_shards=32 \
+  --output_directory=/data/tf_records/v5-full_merge \
+  --num_shards=64 \
   --validation_split_size=0.2
 ```
 *** Nota: para entrenar sobre cualquier otro dataset se requiere tener un
@@ -53,26 +52,27 @@ Categoria_Encabezado,Nombre_encabezado
 Categoria_ID,nombre_imagen_1 nombre_imagen_2 ...
 Categoria_ID,nombre_imagen_2 nombre_imagen_5 ...
 ```
-*** Nota: Una imagen puede pertenecer a distintas categorías
+*** Nota: Cada imagen pertenece solo a una categoría
 *** Nota: Los nombres de los encabezados deben de coincidir con los discritos en el script
 
 ### Train
 ```
-python3 delf/train.py \
-    --train_file_pattern=/data/tf_records/v1-0/train* \
-    --validation_file_pattern=/data/tf_records/v1-0/validation* \
+python3 custom_delf/train.py \
+    --train_file_pattern=/data/tf_records/v5-full_merge/train* \
+    --validation_file_pattern=/data/tf_records/v5-full_merge/validation* \
     --imagenet_checkpoint=/data/models/resnet50_weights_tf_dim_ordering_tf_kernels_notop.h5 \
-    --logdir=/data/train/v1-0 \
-    --max_iters=10000 \
-    --initial_lr=0.025 \
-    --batch_size=32
+    --logdir=/data/train/v5-full_merge \
+    --max_iters=15000 \
+    --initial_lr=0.045 \
+    --batch_size=50 \
+    --num_classes=9
 ```
 
 ### Export Model
 ```bash
-python3 delf/export_local_model.py \
-  --ckpt_path=/data/train/v1-0/delf_weights \
-  --export_path=/data/models/v1-0
+python3 custom_delf/export_local_model.py \
+  --ckpt_path=/data/train/v5-full_merge/delf_weights \
+  --export_path=/data/models/v5-full_merge
 ```
 
 ## Descubrimiento de estructuras visuales
@@ -86,9 +86,9 @@ python3 delf/export_local_model.py \
 El script encargado de extraer los descriptores es _extractor.py_ para su ejecución es obligatorio la especificación de tres parámetros:
 1. Tipo de extractor
 2. Ruta Absoluta o Relativa de la carpeta de imágenes
-3. Ruta Absoluta o Relativa del archivo a generar
+3. Ruta Absoluta o Relativa y nombre del archivo a generar
 
-La siguiente ejecución creará un archivo Pickle con el nombre _images_descriptors_
+La siguiente ejecución creará un archivo cvs con la información de los puntos de interés y un archivo txt con los valores de los descriptores.
 ```bash
 extractor.py SIFT /images_dataset /test/images_descriptors
 ```
@@ -98,7 +98,7 @@ El proceso de minado requiere de un vocabulario, utilizando los descriptores gen
 
 El script encargado de extraer los descriptores es cluster.py_ para su ejecución es obligatorio la especificación de tres parámetros:
 1. Ruta Absoluta o Relativa del archivo generado por el paso anterior
-2. Ruta Absoluta o Relativa del archivo a generar
+2. Ruta Absoluta o Relativa y nombre del archivo a generar
 3. Número de cluster (tamaño de vocabulario final)
 
 La siguiente ejecución creará un archivo Pickle con el nombre _images_clusters_ utilizando 2000 clusters
