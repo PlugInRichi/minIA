@@ -62,7 +62,7 @@ class Delf(Extractor):
             y, x, = zip(*extracted_features['locations'].astype(int))
             feature_scales = extracted_features['scales']
             score = extracted_features['attention']
-            return {'location_x': x, 'location_y': y, 'size': feature_scales, 'score': score}, descriptors
+            return {'location_x': x, 'location_y': y, 'size': feature_scales*32, 'score': score}, descriptors
         else:
             return None, None
 
