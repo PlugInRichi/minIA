@@ -5,7 +5,7 @@ from tqdm import tqdm
 import matplotlib.pyplot as plt
 import cv2 as cv
 
-image_dir_path = '/data/images/DELF_extractor'
+image_dir_path = '/data/images/images_gz2'
 plt.rcParams['axes.facecolor'] = 'black'
 def load_files(dir_path):
     files = listdir(dir_path)
@@ -41,8 +41,7 @@ def search_structure(structure_id, threshold, split=0.01):
     max_features = int(len(im_features_df) * split)
     cnt_vw_struct = Counter(dict(structures[structure_id]))
     num_features_struct = sum(cnt_vw_struct.values())
-    match_imgs = im_features_df.iloc[:max_features]
-    match_imgs = match_imgs['visual_word_id'].isin(cnt_vw_struct.keys())
+    match_imgs = im_features_df['visual_word_id'].isin(cnt_vw_struct.keys())
     match_imgs = set(match_imgs[match_imgs].index)
     images_df = im_features_df.loc[match_imgs].copy()
     images_df['overlap'] = 0
@@ -92,6 +91,7 @@ def show_images_per_structure(images_df, structure_id, img_names, gray=True):
             overlap = img_match_df["overlap"]
 
         color_schema = cv.COLOR_BGR2GRAY if gray else cv.COLOR_BGR2RGB
+        print(path.join(image_dir_path, img_name+'.jpg'))
         img = cv.imread(path.join(image_dir_path, img_name+'.jpg'))
         img = cv.cvtColor(img, color_schema)
 
@@ -111,7 +111,7 @@ def show_images_per_structure(images_df, structure_id, img_names, gray=True):
         axs[x_pos, y_pos].set_xlabel(f'{img_name}\noverlap: {overlap:0.3}')
         axs[x_pos, y_pos].imshow(img)
         i += 1
-        plt.savefig('/data/images/DELF_extractor/prueba',facecolor=(2/255,2/255,2/255),bbox_inches='tight')
+        #plt.savefig('/data/images/DELF_extractor/prueba',facecolor=(2/255,2/255,2/255),bbox_inches='tight')
 
 if __name__ == '__main__':
     models = load_files('/data/SMH_models')

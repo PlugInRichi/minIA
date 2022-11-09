@@ -2,7 +2,7 @@
 # coding: utf-8
 
 from minIA.utiles import lectura_img
-from minIA.imageProcessing import filter_images
+from minIA.imageProcessing import upsampling_imgs
 import argparse
 
 parser = argparse.ArgumentParser()
@@ -14,7 +14,7 @@ def main(args=parser.parse_args()):
     print('Filtering images...')
     path_names = lectura_img(args.source_dir)
     image_names = [im_path.split('/')[-1][:-4] for im_path in path_names]
-    filter_images(image_names, args.source_dir, args.dest_dir)
+    upsampling_imgs(image_names, args.source_dir, args.dest_dir)
 
 
 if __name__ == '__main__':
