@@ -7,6 +7,7 @@ class Extractor(object):
     def __init__(self):
         self.model = None
         self.filter = False
+        self.feature_dim = 0
     def read_path(self, image_path):
         if self.filter:
             img = cv.imread(image_path, cv.COLOR_HSV2BGR)
@@ -18,17 +19,20 @@ class Extractor(object):
 
     def get_features(self, image_path):
         imagen = self.read_path(image_path)
-        kps, descs = self.model.detectAndCompute(imagen,None)
-        keypoints = list()
-        for kp in kps:
-            keypoints.append(np.array([kp.pt[0], kp.pt[1], kp.size]))
-        return  {'keypoints': keypoints, 'descriptors': descs}
+        kps, descriptors = self.model.detectAndCompute(imagen, None)
+        if descriptors is not None:
+            key_points = [(int(kp.pt[0]), int(kp.pt[1]), int(kp.size)) for kp in kps]
+            x, y, size = zip(*key_points)
+            return {'location_x': x, 'location_y': y, 'size': size}, descriptors.astype('int')
+        else:
+            return None, None
 
 
 class Sift(Extractor):
     def __init__(self, auto, nfeatures, nOctaveLayers, contrastThreshold,
                  edgeThreshold, sigma):
         super().__init__()
+        self.feature_dim = 128
         if auto:
             self.model = cv.xfeatures2d_SIFT.create()
         else:
@@ -53,12 +57,12 @@ class Delf(Extractor):
 
     def get_features(self, image_path):
         extracted_features = self.model.extract_features(image_path)
-        locations = extracted_features['locations']
         descriptors = extracted_features['descriptors']
-        descriptors = descriptors if len(descriptors) > 0 else None
-        feature_scales = extracted_features['scales']
-        attention = extracted_features['attention']
-        key_points = np.concatenate((locations, feature_scales.reshape(-1, 1)), axis=1)
-        return {'keypoints': key_points,
-                'descriptors': descriptors,
-                'attention': attention}
+        if len(descriptors) > 0:
+            y, x, = zip(*extracted_features['locations'].astype(int))
+            feature_scales = extracted_features['scales']
+            score = extracted_features['attention']
+            return {'location_x': x, 'location_y': y, 'size': feature_scales*32, 'score': score}, descriptors
+        else:
+            return None, None
+
