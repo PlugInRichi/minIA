@@ -5,7 +5,6 @@ from tqdm import tqdm
 import matplotlib.pyplot as plt
 import cv2 as cv
 
-image_dir_path = '/data/images/images_gz2'
 plt.rcParams['axes.facecolor'] = 'black'
 def load_files(dir_path):
     files = listdir(dir_path)
@@ -13,7 +12,7 @@ def load_files(dir_path):
 
 
 def load_model(model_path):
-    global models_size
+    global structures_size
     global structures
     with open(model_path, 'r') as model_file:
         model = model_file.readlines()
@@ -35,13 +34,14 @@ def load_im_features(im_features_path):
         im_features_df = pd.read_csv(file)
         im_features_df.set_index('image_name', drop=False, inplace=True)
         im_features_df.index.rename('image_id', inplace=True)
+    return im_features_df
 
-def search_structure(structure_id, threshold, split=0.01):
-    global im_features_df
+def search_structure(im_features_df, structure_id, threshold, split=0.01):
     max_features = int(len(im_features_df) * split)
     cnt_vw_struct = Counter(dict(structures[structure_id]))
     num_features_struct = sum(cnt_vw_struct.values())
-    match_imgs = im_features_df['visual_word_id'].isin(cnt_vw_struct.keys())
+    match_imgs = im_features_df.iloc[0:max_features]
+    match_imgs = match_imgs['visual_word_id'].isin(cnt_vw_struct.keys())
     match_imgs = set(match_imgs[match_imgs].index)
     images_df = im_features_df.loc[match_imgs].copy()
     images_df['overlap'] = 0
@@ -58,32 +58,36 @@ def search_structure(structure_id, threshold, split=0.01):
             images_df.drop(labels=img_name[0], inplace=True)
         else:
             images_df.loc[img_name[0], 'overlap'] = overlap
+    print(len(images_df.groupby('image_name').count()), ' images found.')
     return images_df
 
 
 # Enviar máximo 9 imágenes
 # img_names is a dictionary name/ path
-def show_images_per_structure(images_df, structure_id, img_names, gray=True):
-    num_images = len(img_names)
+def show_images_per_structure(images_df, structure_id, img_names, im_index, path_images, gray=False):
+    start = im_index - 1
+    end = im_index + 8
+    img_selected = img_names[start:end] if end < len(img_names) else img_names[start:]
+    num_images = len(img_selected)   
     if num_images <= 3:
-        x, y = 1, num_images
+        x_fig, y_fig = 1, num_images
     elif num_images <= 6:
-        x, y = 2, 3
+        x_fig, y_fig = 2, 3
     elif num_images <= 9:
-        x, y = 3, 3
+        x_fig, y_fig = 3, 3
     else:
         raise ValueError("Number of image names cannot be greater than 9")
-    fig, axs = plt.subplots(x, y, figsize=(15, 15), dpi=200)
+    fig, axs = plt.subplots(x_fig, y_fig, figsize=(15, 15), dpi=200)
     vw_struct = dict(structures[structure_id]).keys()
     i = 0
-    for img_name in img_names: #Limitar las imágenes con el valor de i
+    for img_name in img_selected: #Limitar las imágenes con el valor de i
         img_match_df = images_df.loc[img_name]
         try:
             img_match_df = img_match_df[img_match_df['visual_word_id'].isin(vw_struct)]
             points = zip(img_match_df['location_x'],
                          img_match_df['location_y'],
                          img_match_df['size'])
-            overlap = img_match_df["overlap"][0]
+            overlap = img_match_df['overlap'].iloc[0]
         except AttributeError:
             points = [(img_match_df['location_x'],
                        img_match_df['location_y'],
@@ -91,25 +95,28 @@ def show_images_per_structure(images_df, structure_id, img_names, gray=True):
             overlap = img_match_df["overlap"]
 
         color_schema = cv.COLOR_BGR2GRAY if gray else cv.COLOR_BGR2RGB
-        print(path.join(image_dir_path, img_name+'.jpg'))
-        img = cv.imread(path.join(image_dir_path, img_name+'.jpg'))
+        img_name = str(img_name)
+        img_name = img_name[1:] if img_name[0] == 'F' else img_name
+        img = cv.imread(path.join(path_images, img_name+'.jpg'))
         img = cv.cvtColor(img, color_schema)
 
-        #location_str = images_df['location'].tolist()
-        #location_str = [loc.strip("['']").split() for loc in location_str]
+        for x, y, size in points:
+            img = cv.circle(img, (int(x), int(y)), int(size//2), color=(255, 0, 255), thickness=1, lineType=0, shift=0)
 
-
-
-        for x, y, size in points:  # Multiplicador delf ZIP funciona
-            img = cv.circle(img, (x, y), int(size), color=(255, 0, 255), thickness=1, lineType=0, shift=0)
-
-        x_pos = i % 3
-        y_pos = i // 3
-        axs[x_pos, y_pos].set_xticklabels([])
-        axs[x_pos, y_pos].xaxis.label.set_color('white')
-        axs[x_pos, y_pos].set_yticklabels([])
-        axs[x_pos, y_pos].set_xlabel(f'{img_name}\noverlap: {overlap:0.3}')
-        axs[x_pos, y_pos].imshow(img)
+        y_pos = i % 3
+        x_pos = i // 3
+        if y_fig > 1:
+            axs[x_pos, y_pos].set_xticklabels([])
+            axs[x_pos, y_pos].xaxis.label.set_color('white')
+            axs[x_pos, y_pos].set_yticklabels([])
+            axs[x_pos, y_pos].set_xlabel(f'{img_name}\noverlap: {overlap:0.3}')
+            axs[x_pos, y_pos].imshow(img)
+        else:
+            axs[x_pos].set_xticklabels([])
+            axs[x_pos].xaxis.label.set_color('white')
+            axs[x_pos].set_yticklabels([])
+            axs[x_pos].set_xlabel(f'{img_name}\noverlap: {overlap:0.3}')
+            axs[x_pos].imshow(img)
         i += 1
         #plt.savefig('/data/images/DELF_extractor/prueba',facecolor=(2/255,2/255,2/255),bbox_inches='tight')
 
