@@ -61,9 +61,6 @@ def search_structure(im_features_df, structure_id, threshold, split=0.01):
     print(len(images_df.groupby('image_name').count()), ' images found.')
     return images_df
 
-
-# Enviar máximo 9 imágenes
-# img_names is a dictionary name/ path
 def show_images_per_structure(images_df, structure_id, img_names, im_index, path_images, gray=False):
     start = im_index - 1
     end = im_index + 8
@@ -103,29 +100,40 @@ def show_images_per_structure(images_df, structure_id, img_names, im_index, path
         for x, y, size in points:
             img = cv.circle(img, (int(x), int(y)), int(size//2), color=(255, 0, 255), thickness=1, lineType=0, shift=0)
 
-        y_pos = i % 3
-        x_pos = i // 3
-        if y_fig > 1:
+        x_pos = i % 3
+        y_pos = i // 3
+        if x_fig > 1:
             axs[x_pos, y_pos].set_xticklabels([])
             axs[x_pos, y_pos].xaxis.label.set_color('white')
             axs[x_pos, y_pos].set_yticklabels([])
             axs[x_pos, y_pos].set_xlabel(f'{img_name}\noverlap: {overlap:0.3}')
             axs[x_pos, y_pos].imshow(img)
         else:
-            axs[x_pos].set_xticklabels([])
-            axs[x_pos].xaxis.label.set_color('white')
-            axs[x_pos].set_yticklabels([])
-            axs[x_pos].set_xlabel(f'{img_name}\noverlap: {overlap:0.3}')
-            axs[x_pos].imshow(img)
+            axs.set_xticklabels([])
+            axs.xaxis.label.set_color('white')
+            axs.set_yticklabels([])
+            axs.set_xlabel(f'{img_name}\noverlap: {overlap:0.3}')
+            axs.imshow(img)
         i += 1
         #plt.savefig('/data/images/DELF_extractor/prueba',facecolor=(2/255,2/255,2/255),bbox_inches='tight')
+        
+def gen_key_points(points_img):
+    keypoints = list()
+    for point in points_img:
+        keypoints.append(cv.KeyPoint(point[0], point[1], point[2]))
+    return keypoints
 
-if __name__ == '__main__':
-    models = load_files('/data/SMH_models')
-    features = load_files('/data/visual_vocabulary')
-    load_model(models['simply_features80_DELF_vv.model'])
-    load_im_features(features['simply_features80_DELF_vv.csv'])
-    images_df = search_structure(0, 0.5, 0.05)
-    img_names = images_df['image_name'].unique()
-    show_images_per_structure(images_df, 0, img_names[:-2], gray=False)
-    pass
+def get_image_points(img_name, images_df):
+    img_df = images_df.loc[img_name]
+    points = zip(img_df['location_x'],
+                 img_df['location_y'],
+                 img_df['size'])
+    return points
+
+def draw_key_points_image(img_name, images_df, path_images):
+    img = cv.imread(path.join(path_images, str(img_name)+'.jpg'))
+    points = get_image_points(img_name, images_df)
+    kp = gen_key_points(points)
+    img = cv.drawKeypoints(img, kp, img, flags=cv.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+    cv.imwrite('/data/images/plots/'+str(img_name)+'.jpg', img)
+    return cv.cvtColor(img, cv.COLOR_BGR2RGB)
