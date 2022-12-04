@@ -5,7 +5,6 @@ from tqdm import tqdm
 import matplotlib.pyplot as plt
 import cv2 as cv
 
-plt.rcParams['axes.facecolor'] = 'black'
 def load_files(dir_path):
     files = listdir(dir_path)
     return dict([(file, path.join(dir_path, file)) for file in files])
@@ -36,6 +35,7 @@ def load_im_features(im_features_path):
         im_features_df.index.rename('image_id', inplace=True)
     return im_features_df
 
+
 def search_structure(im_features_df, structure_id, threshold, split=0.01):
     max_features = int(len(im_features_df) * split)
     cnt_vw_struct = Counter(dict(structures[structure_id]))
@@ -44,11 +44,11 @@ def search_structure(im_features_df, structure_id, threshold, split=0.01):
     match_vw_imgs = match_imgs['visual_word_id'].isin(cnt_vw_struct.keys())
     features_size = match_imgs[match_vw_imgs].groupby('image_name')['visual_word_id'].count()
     mask = features_size > structures_size[structure_id] // 2
-    match_imgs = set(mask.index)
+    match_imgs = set(mask[mask].index)
     images_df = im_features_df.loc[match_imgs].copy()
     images_df['overlap'] = 0
     vws_per_image = images_df[['image_name', 'visual_word_id']].groupby('image_name').apply(pd.DataFrame.to_records,
-                                                                                           index=False)
+                                                                                            index=False)
     print('Searching in ', len(vws_per_image), 'images...')
     for vws_image in tqdm(vws_per_image):
         img_name, img_vw_ids = zip(*vws_image)
@@ -63,11 +63,12 @@ def search_structure(im_features_df, structure_id, threshold, split=0.01):
     print(len(images_df.groupby('image_name').count()), ' images found.')
     return images_df
 
+
 def show_images_per_structure(images_df, structure_id, img_names, im_index, path_images, gray=False):
     start = im_index - 1
     end = im_index + 8
     img_selected = img_names[start:end] if end < len(img_names) else img_names[start:]
-    num_images = len(img_selected)   
+    num_images = len(img_selected)
     if num_images <= 3:
         x_fig, y_fig = 1, num_images
     elif num_images <= 6:
@@ -79,7 +80,7 @@ def show_images_per_structure(images_df, structure_id, img_names, im_index, path
     fig, axs = plt.subplots(x_fig, y_fig, figsize=(15, 15), dpi=200)
     vw_struct = dict(structures[structure_id]).keys()
     i = 0
-    for img_name in img_selected: #Limitar las imágenes con el valor de i
+    for img_name in img_selected:
         img_match_df = images_df.loc[img_name]
         try:
             img_match_df = img_match_df[img_match_df['visual_word_id'].isin(vw_struct)]
@@ -102,8 +103,8 @@ def show_images_per_structure(images_df, structure_id, img_names, im_index, path
         for x, y, size in points:
             img = cv.circle(img, (int(x), int(y)), int(size//2), color=(255, 0, 255), thickness=1, lineType=0, shift=0)
 
-        y_pos = i % 3
-        x_pos = i // 3
+        x_pos = i % 3
+        y_pos = i // 3
         if x_fig > 1:
             axs[x_pos, y_pos].set_xticklabels([])
             axs[x_pos, y_pos].xaxis.label.set_color('blue')
@@ -117,13 +118,14 @@ def show_images_per_structure(images_df, structure_id, img_names, im_index, path
             axs.set_xlabel(f'Image ID: {img_name}\noverlap: {overlap:0.3}')
             axs.imshow(img)
         i += 1
-        #plt.savefig('/data/images/DELF_extractor/prueba',facecolor=(2/255,2/255,2/255),bbox_inches='tight')
-        
+
+
 def gen_key_points(points_img):
     keypoints = list()
     for point in points_img:
         keypoints.append(cv.KeyPoint(point[0], point[1], point[2]))
     return keypoints
+
 
 def get_image_points(img_name, images_df):
     img_df = images_df.loc[img_name]
@@ -131,6 +133,7 @@ def get_image_points(img_name, images_df):
                  img_df['location_y'],
                  img_df['size'])
     return points
+
 
 def draw_key_points_image(img_name, images_df, path_images):
     img = cv.imread(path.join(path_images, str(img_name)+'.jpg'))
