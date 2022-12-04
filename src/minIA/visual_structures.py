@@ -41,8 +41,10 @@ def search_structure(im_features_df, structure_id, threshold, split=0.01):
     cnt_vw_struct = Counter(dict(structures[structure_id]))
     num_features_struct = sum(cnt_vw_struct.values())
     match_imgs = im_features_df.iloc[0:max_features]
-    match_imgs = match_imgs['visual_word_id'].isin(cnt_vw_struct.keys())
-    match_imgs = set(match_imgs[match_imgs].index)
+    match_vw_imgs = match_imgs['visual_word_id'].isin(cnt_vw_struct.keys())
+    features_size = match_imgs[match_vw_imgs].groupby('image_name')['visual_word_id'].count()
+    mask = features_size > structures_size[structure_id] // 2
+    match_imgs = set(mask.index)
     images_df = im_features_df.loc[match_imgs].copy()
     images_df['overlap'] = 0
     vws_per_image = images_df[['image_name', 'visual_word_id']].groupby('image_name').apply(pd.DataFrame.to_records,
@@ -100,19 +102,19 @@ def show_images_per_structure(images_df, structure_id, img_names, im_index, path
         for x, y, size in points:
             img = cv.circle(img, (int(x), int(y)), int(size//2), color=(255, 0, 255), thickness=1, lineType=0, shift=0)
 
-        x_pos = i % 3
-        y_pos = i // 3
+        y_pos = i % 3
+        x_pos = i // 3
         if x_fig > 1:
             axs[x_pos, y_pos].set_xticklabels([])
-            axs[x_pos, y_pos].xaxis.label.set_color('white')
+            axs[x_pos, y_pos].xaxis.label.set_color('blue')
             axs[x_pos, y_pos].set_yticklabels([])
-            axs[x_pos, y_pos].set_xlabel(f'{img_name}\noverlap: {overlap:0.3}')
+            axs[x_pos, y_pos].set_xlabel(f'Image ID: {img_name}\noverlap: {overlap:0.3}')
             axs[x_pos, y_pos].imshow(img)
         else:
             axs.set_xticklabels([])
             axs.xaxis.label.set_color('white')
             axs.set_yticklabels([])
-            axs.set_xlabel(f'{img_name}\noverlap: {overlap:0.3}')
+            axs.set_xlabel(f'Image ID: {img_name}\noverlap: {overlap:0.3}')
             axs.imshow(img)
         i += 1
         #plt.savefig('/data/images/DELF_extractor/prueba',facecolor=(2/255,2/255,2/255),bbox_inches='tight')
