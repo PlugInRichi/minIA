@@ -2,6 +2,7 @@
 
 #Ignorar la colección de imágenes
 images/
+!images/structures_examples
 
 #Ingorar los checkpoints de notebooks
 notebooks/.ipynb_checkpoints/*
