@@ -3,7 +3,7 @@
 [![TensorFlow 2.2](https://img.shields.io/badge/tensorflow-2.2-brightgreen)](https://github.com/tensorflow/tensorflow/releases/tag/v2.2.0)
 ![Maintaner](https://img.shields.io/badge/OpenCV_contrib_python-3.4.2.16-blue)
 
-_El proyecto tiene como finalidad encontrar características dentro de una galería de imágenes que permita identificar los patrones representen estructuras de las galaxias. Haciendo uso de un vocabulario visual se extraen los objetos visuales por medio de Sampled-MinHashing_
+_**minIA** is an unsupervised learning methiodology for discovering patterns in astronomical images (although it can be applied to any other image collection). We use a customized DELF model to extract simple features from images through a bag of words model we represent each image in the collection to mine patterns using the ![Sampled-MinHashing](https://github.com/gibranfp/Sampled-MinHashing) technique._
 
 ## Comenzando 🚀
 El proyecto completo puede ejecutarse desde un contenedor, las intrucciones para ejecutarlo correctamente pueden ser encontradas [aquí](install).
