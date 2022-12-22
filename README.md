@@ -5,6 +5,8 @@
 
 _**minIA** is an unsupervised learning methiodology for discovering patterns in astronomical images (although it can be applied to any other image collection). We use a customized DELF model to extract simple features from images through a bag of words model we represent each image in the collection to mine patterns using the ![Sampled-MinHashing](https://github.com/gibranfp/Sampled-MinHashing) technique._
 
+ ![Screenshot](data/images/structures_examples/r2_l1000,vv_1000_19-1.png)
+
 ## Install minIA 🚀
 The whole project can be run from a Docker container, instructions for running it correctly can be found [here](install).
 
