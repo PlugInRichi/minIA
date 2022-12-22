@@ -5,22 +5,21 @@
 
 _**minIA** is an unsupervised learning methiodology for discovering patterns in astronomical images (although it can be applied to any other image collection). We use a customized DELF model to extract simple features from images through a bag of words model we represent each image in the collection to mine patterns using the ![Sampled-MinHashing](https://github.com/gibranfp/Sampled-MinHashing) technique._
 
-## Comenzando 🚀
-El proyecto completo puede ejecutarse desde un contenedor, las intrucciones para ejecutarlo correctamente pueden ser encontradas [aquí](install).
+## Install minIA 🚀
+The whole project can be run from a Docker container, instructions for running it correctly can be found [here](install).
 
+The use of **Sampled-MinHashing** requires a separate installation that is not found in the container, for this you have to follow the instructions in [Sampled-MinHashing](https://github.com/gibranfp/Sampled-MinHashing ) repository.
 
-El uso de **Sampled-MinHashing** requiere de una instalación que no se encuentra en el contenedor, para esto hay que seguir las intruciones en [Sampled-MinHashing](https://github.com/gibranfp/Sampled-MinHashing) repositorio.
+## Execution :joystick:
 
-# Ejecución :joystick:
+### Customization of the DELF model for the extraction of astronomical features
+1. [Dataset creation](#Dataset-creation)
+3. [Reformating dataset](#Reformating-dataset)
+4. [Train](#Train)
+5. [Export Model](#Export-model)
 
-## Entrenamiento del modelo especializado en detección de características
-1. Dataset creation
-2. Formating dataset
-3. Train
-4. Export Model
-
-### Creación de dataset
-Para configurar la creación del dataset de entrenamiento para el modelo neuronal es necesario especificar los parámetros en un archivo de configuración:
+#### Dataset creation
+To configure the creation of the training dataset for the neural model, it is necessary to specify the parameters in a configuration file:
 ```bash
 # data/config/dataset_config.yml
     galaxyZoo2_path:  /data/images/gz2_hart16.csv
@@ -30,11 +29,11 @@ Para configurar la creación del dataset de entrenamiento para el modelo neurona
     images_out_dir_path: /data/images/images_gz2
     class_size: 5000
 ```
-Después simplemente ejecutar el script
+Then just run the script
 ```
 python3 createDataSet.py
 ```
-### Reformating dataset
+#### Reformating dataset
 ```
 python3 custom_delf/build_galaxy_image_dataset.py \
   --train_clean_csv_path=/data/images/gz2_train_dataset_5000_with_filter.csv \
@@ -43,19 +42,17 @@ python3 custom_delf/build_galaxy_image_dataset.py \
   --num_shards=64 \
   --validation_split_size=0.2
 ```
-*** Nota: para entrenar sobre cualquier otro dataset se requiere tener un
-formato igual al de 'GZ_dataset.csv' (respetar número de espacios y saltos de
-línea, el nombre de las imagenes se da sin formato y la extensión debe ser JPG)
+*** Note: to train on any other dataset it is required to have a format equal to 'GZ_dataset.csv' (with the same number of spaces and line breaks, the name of the images is given without format and the extension must be JPG) like:
 
 ```
 Categoria_Encabezado,Nombre_encabezado
 Categoria_ID,nombre_imagen_1 nombre_imagen_2 ...
 Categoria_ID,nombre_imagen_2 nombre_imagen_5 ...
 ```
-*** Nota: Cada imagen pertenece solo a una categoría
-*** Nota: Los nombres de los encabezados deben de coincidir con los discritos en el script
+*** Note: Each image belongs to only one category
+*** Note: The names of the headers must match those written in the script
 
-### Train
+#### Train
 ```
 python3 custom_delf/train.py \
     --train_file_pattern=/data/tf_records/v5-full_merge/train* \
@@ -68,56 +65,63 @@ python3 custom_delf/train.py \
     --num_classes=9
 ```
 
-### Export Model
+#### Export Model
 ```bash
 python3 custom_delf/export_local_model.py \
   --ckpt_path=/data/train/v5-full_merge/delf_weights \
   --export_path=/data/models/v5-full_merge
 ```
 
-## Descubrimiento de estructuras visuales
-1. [Extracción de características](#Extracción-de-características)
-2. [Clusterización](#Clusterización)
-3. [Minado de estructuras](#Minado-de-estructuras)
-4. [Visualización de estructuras](#Visualización-de-estructuras)
+### Discovery of visual patterns
+1. [Feature extraction](#Feature-extraction)
+2. [Bag of words model](#Bag-of-words-model)
+3. [Pattern mining](#Pattern-mining)
+4. [Explore patterns!](#Explore-patterns)
 
-### Extracción de características 
+#### Feature extraction
 
-El script encargado de extraer los descriptores es _extractor.py_ para su ejecución es obligatorio la especificación de tres parámetros:
-1. Tipo de extractor
-2. Ruta Absoluta o Relativa de la carpeta de imágenes
-3. Ruta Absoluta o Relativa y nombre del archivo a generar
+The script for feature extraction is _extractor.py_ for its execution it is mandatory to specify three parameters:
+1. Extractor type (DELF, SIFT, SURF)
+2. Absolute or Relative Path of the image folder
+3. Absolute or Relative Path and name of the file to generate
 
-La siguiente ejecución creará un archivo cvs con la información de los puntos de interés y un archivo txt con los valores de los descriptores.
+The following execution will create a cvs file with the POI information and a txt file with the descriptor values.
 ```bash
 extractor.py SIFT /images_dataset /test/images_descriptors
 ```
 
-### Clusterización
-El proceso de minado requiere de un vocabulario, utilizando los descriptores generados del paso anterior se realiza un clusterizado con la finalidad de estandarizar nuestro vocabulario, al final de este proceso se obtendrá un nuevo archivo que contendrá los un índice que representa el cluster al que fue asociado cada descriptor. 
+#### Bag of words model
+The mining process requires representing each image using the bag of words model. With the descriptors generated in the previous step we build this vocabulary.
+For the execution of _cluster.py_ it is mandatory to specify three parameters:
+1. Absolute or Relative Path of the file generated by the previous step
+2. Absolute or Relative Path and name of the file to generate
+3. Number of cluster (final vocabulary size)
 
-El script encargado de extraer los descriptores es cluster.py_ para su ejecución es obligatorio la especificación de tres parámetros:
-1. Ruta Absoluta o Relativa del archivo generado por el paso anterior
-2. Ruta Absoluta o Relativa y nombre del archivo a generar
-3. Número de cluster (tamaño de vocabulario final)
-
-La siguiente ejecución creará un archivo Pickle con el nombre _images_clusters_ utilizando 2000 clusters
+The following execution will create new csv file named _images_clusters_ using 2000 clusters
 ```bash
-cluster.py /test/images_descriptors /test/images_clusters 2000
+cluster.py /test/images_descriptors /test/images_visual_vocabulary 2000
 ```
-### Minado de estructuras 
-Utilizando el archivo generado de la clusterización y el generado de la extracción se crea el doumento de entrada para SHM.
+#### Pattern mining
+Using the file generated in the previous step we create the input document for the mining step.
+For the execution of _cluster.py_ it is mandatory to specify two parameters:
+1. Magnitude associated with the image indices (SIZE or FRECUENCY)
+2. Absolute or Relative Path of the file generated in the previous step
+3. Absolute or Relative Path of the document to be generated
+Optionaly we can use the _drop_outliers_ in order to reduce the size of words
 
-1. Magnitud asociada a los índices de la imagen (Tamaño o frecuencia)
-2. Ruta Absoluta o Relativa del archivo generado por el extractor
-3. Ruta Absoluta o Relativa del archivo generado por el cluster
-4. Ruta Absoluta o Relativa del documento a generar
-
-La siguiente ejecución creará un documento con el nombre _clusters_per_images_ midiendo el tamaño con el que aparecen dentro de la imagen
+The following execution will create a document with the name _clusters_per_images_ measuring the size with which they appear within the image
 ```bash
-SMHdocument.py SIZE /test/images_descriptors /test/images_clusters  /test/clusters_per_images
+SMHdocument.py SIZE /test/images_visual_vocabulary data/SMH_files/images_BoW.words
 ```
-EJECUTAR SMH...
 
-### Visualización de estructuras 
+If we have Sampled-MinHashing installed we can perform the mining like:
 
+```bash
+#This create an inverted file index
+    smhcmd ifindex  data/SMH_files/images_BoW.words data/SMH_files/images_BoW.ifs
+```
+```bash
+smhcmd discover -r 2 -l 750 data/SMH_files/images_BoW.ifs data/SMH_models/images_structures.model
+```
+### Explore patterns!
+To perform the exploration of visual structures (patterns) we can use [this notebook](src/structure_match.ipynb) to display the images that belong to the same structure
